@@ -23,6 +23,21 @@ router.get('/book/:slug', async (req, res) => {
   res.render('book-detail', { title: `${book.title} - Jude Harper`, book, gallery: gallery || [] });
 });
 
+// Audiobooks page
+router.get('/audiobooks', async (req, res) => {
+  const { data: books } = await supabase.from('jh_books').select('*').eq('active', true).eq('has_audiobook', true).order('created_at', { ascending: false });
+  res.render('audiobooks', { title: 'Audiobooks - Jude Harper', books: books || [] });
+});
+
+// Audiobook player (requires purchase token)
+router.get('/listen/:token', async (req, res) => {
+  const { data: order } = await supabase.from('jh_orders').select('*, jh_books(*)').eq('download_token', req.params.token).eq('status', 'completed').single();
+  if (!order || order.format !== 'audiobook' || !order.jh_books?.audiobook_file) {
+    return res.status(404).render('404', { title: 'Not Found' });
+  }
+  res.render('player', { title: `Listen: ${order.jh_books.title}`, book: order.jh_books, order, token: req.params.token });
+});
+
 // Bundles page
 router.get('/bundles', async (req, res) => {
   const { data: bundles } = await supabase.from('jh_bundles').select('*').eq('active', true).order('created_at', { ascending: false });

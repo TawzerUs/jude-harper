@@ -1,0 +1,136 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<main class="flex-1 px-6 md:px-12 py-12 md:py-16">
+  <div class="max-w-2xl mx-auto">
+    <!-- Book Info -->
+    <div class="flex gap-6 mb-8">
+      <% if (book.cover_image) { %>
+        <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-32 h-44 object-cover rounded-xl shadow-lg">
+      <% } %>
+      <div>
+        <span class="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-pill">Audiobook</span>
+        <h1 class="font-serif text-3xl font-bold mt-2"><%= book.title %></h1>
+        <p class="text-fg-secondary mt-2">By Jude Harper</p>
+      </div>
+    </div>
+
+    <!-- Audio Player -->
+    <div class="bg-surface-secondary rounded-bento p-8 space-y-6">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-600 transition" id="playBtn" onclick="togglePlay()">
+          <svg id="playIcon" class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pauseIcon" class="w-8 h-8 text-white hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+        </div>
+        <div class="flex-1">
+          <p class="font-semibold">Now Playing</p>
+          <p class="text-sm text-fg-muted"><%= book.title %></p>
+        </div>
+        <span id="currentTime" class="text-sm text-fg-muted font-mono">0:00</span>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="relative">
+        <div class="w-full h-2 bg-border-subtle rounded-full overflow-hidden cursor-pointer" onclick="seekAudio(event)">
+          <div id="progress" class="h-full bg-accent rounded-full transition-all" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between mt-2">
+          <span id="elapsed" class="text-xs text-fg-muted font-mono">0:00</span>
+          <span id="duration" class="text-xs text-fg-muted font-mono">--:--</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center justify-center gap-8">
+        <button onclick="skipBack()" class="text-fg-muted hover:text-fg-primary transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-8.36L3 4"/></svg>
+          <span class="text-xs block mt-1">-30s</span>
+        </button>
+        <button onclick="togglePlay()" class="w-14 h-14 bg-accent rounded-full flex items-center justify-center text-white hover:bg-orange-600 transition">
+          <svg id="playIcon2" class="w-7 h-7 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pauseIcon2" class="w-7 h-7 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+        </button>
+        <button onclick="skipForward()" class="text-fg-muted hover:text-fg-primary transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-5.64-8.36L21 4"/></svg>
+          <span class="text-xs block mt-1">+30s</span>
+        </button>
+      </div>
+
+      <!-- Speed -->
+      <div class="flex items-center justify-center gap-2">
+        <span class="text-xs text-fg-muted">Speed:</span>
+        <% [0.75, 1, 1.25, 1.5, 2].forEach(s => { %>
+          <button onclick="setSpeed(<%= s %>)" class="text-xs px-2 py-1 rounded-lg speed-btn <%= s === 1 ? 'bg-accent text-white' : 'bg-white text-fg-secondary' %> hover:bg-accent hover:text-white transition"><%= s %>x</button>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Download -->
+    <div class="mt-6 flex items-center justify-between bg-surface-secondary rounded-xl px-6 py-4">
+      <div class="flex items-center gap-3">
+        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span class="text-sm font-medium">Download MP3 to keep forever</span>
+      </div>
+      <a href="/api/download/<%= token %>" class="bg-accent text-white text-sm px-5 py-2 rounded-pill font-semibold hover:bg-orange-600 transition">Download</a>
+    </div>
+
+    <p class="text-center text-xs text-fg-muted mt-4">Downloads remaining: <%= 5 - order.download_count %> of 5</p>
+  </div>
+</main>
+
+<audio id="audioPlayer" preload="auto"></audio>
+
+<script>
+const audio = document.getElementById('audioPlayer');
+let isPlaying = false;
+
+// Load audio from stream endpoint
+audio.src = '/api/stream/<%= token %>';
+
+audio.addEventListener('loadedmetadata', () => {
+  document.getElementById('duration').textContent = formatTime(audio.duration);
+});
+
+audio.addEventListener('timeupdate', () => {
+  const pct = (audio.currentTime / audio.duration) * 100;
+  document.getElementById('progress').style.width = pct + '%';
+  document.getElementById('elapsed').textContent = formatTime(audio.currentTime);
+  document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+});
+
+function togglePlay() {
+  if (isPlaying) { audio.pause(); } else { audio.play(); }
+  isPlaying = !isPlaying;
+  document.getElementById('playIcon').classList.toggle('hidden', isPlaying);
+  document.getElementById('pauseIcon').classList.toggle('hidden', !isPlaying);
+  document.getElementById('playIcon2').classList.toggle('hidden', isPlaying);
+  document.getElementById('pauseIcon2').classList.toggle('hidden', !isPlaying);
+}
+
+function skipBack() { audio.currentTime = Math.max(0, audio.currentTime - 30); }
+function skipForward() { audio.currentTime = Math.min(audio.duration, audio.currentTime + 30); }
+
+function seekAudio(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
+}
+
+function setSpeed(s) {
+  audio.playbackRate = s;
+  document.querySelectorAll('.speed-btn').forEach(b => {
+    b.className = b.textContent.trim() === s + 'x'
+      ? 'text-xs px-2 py-1 rounded-lg speed-btn bg-accent text-white'
+      : 'text-xs px-2 py-1 rounded-lg speed-btn bg-white text-fg-secondary hover:bg-accent hover:text-white transition';
+  });
+}
+
+function formatTime(sec) {
+  if (!sec || isNaN(sec)) return '--:--';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+</script>
+
+<%- include('partials/footer') %>

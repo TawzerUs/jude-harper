@@ -94,7 +94,9 @@ router.get('/success', async (req, res) => {
         }
       }
 
-      if (format === 'digital' || format === 'audiobook') {
+      if (format === 'audiobook') {
+        return res.redirect(`/listen/${downloadToken}`);
+      } else if (format === 'digital') {
         return res.redirect(`/api/download/${downloadToken}`);
       } else {
         return res.redirect(`/api/order-confirmed/${downloadToken}`);
@@ -212,6 +214,21 @@ router.get('/order-confirmed/:token', async (req, res) => {
       <a href="/" class="inline-block bg-[#FF5C00] text-white px-8 py-3 rounded-full font-semibold hover:bg-orange-600 transition">Back to Store</a>
     </div></body></html>
   `);
+});
+
+// Stream audiobook (doesn't count as download)
+router.get('/stream/:token', async (req, res) => {
+  const { data: order } = await supabase.from('jh_orders').select('*, jh_books(*)').eq('download_token', req.params.token).eq('status', 'completed').single();
+  if (!order || !order.jh_books?.audiobook_file) {
+    return res.status(404).send('Not found');
+  }
+  const { data, error } = await supabase.storage.from('jh-uploads').download(order.jh_books.audiobook_file);
+  if (error || !data) return res.status(404).send('File not found');
+  const buffer = Buffer.from(await data.arrayBuffer());
+  res.set('Content-Type', 'audio/mpeg');
+  res.set('Content-Length', buffer.length);
+  res.set('Accept-Ranges', 'bytes');
+  res.send(buffer);
 });
 
 // Bundle checkout
