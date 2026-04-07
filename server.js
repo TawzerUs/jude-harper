@@ -32,6 +32,8 @@ app.use(session({
 // Make session data available to all views
 app.use((req, res, next) => {
   res.locals.isAdmin = req.session.isAdmin || false;
+  res.locals.adminName = req.session.adminName || '';
+  res.locals.adminEmail = req.session.adminEmail || '';
   res.locals.stripeKey = process.env.STRIPE_PUBLISHABLE_KEY;
   next();
 });

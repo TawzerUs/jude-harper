@@ -4,7 +4,11 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const { supabase } = require('../db/setup');
+
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MIN = 15;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, '/tmp'),
@@ -16,11 +20,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 function requireAdmin(req, res, next) {
-  if (req.session.isAdmin) return next();
+  if (req.session.isAdmin && req.session.adminEmail) return next();
   res.redirect('/admin/login');
 }
 
-// Helper: upload file to Supabase Storage
 async function uploadToStorage(filePath, storagePath, contentType) {
   const fileBuffer = fs.readFileSync(filePath);
   await supabase.storage.from('jh-uploads').upload(storagePath, fileBuffer, { contentType, upsert: true });
@@ -30,16 +33,61 @@ async function uploadToStorage(filePath, storagePath, contentType) {
 
 // Login
 router.get('/login', (req, res) => {
+  if (req.session.isAdmin) return res.redirect('/admin');
   res.render('admin/login', { title: 'Admin Login', error: null });
 });
 
-router.post('/login', express.urlencoded({ extended: true }), (req, res) => {
-  const adminPw = process.env.ADMIN_PASSWORD || 'admin123';
-  if ((req.body?.password || '') === adminPw) {
-    req.session.isAdmin = true;
-    return res.redirect('/admin');
+router.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
+  const email = (req.body?.email || '').trim().toLowerCase();
+  const password = req.body?.password || '';
+  const ip = req.headers['x-forwarded-for'] || req.ip || 'unknown';
+
+  if (!email || !password) {
+    return res.render('admin/login', { title: 'Admin Login', error: 'Email and password required' });
   }
-  res.render('admin/login', { title: 'Admin Login', error: 'Invalid password' });
+
+  // Find admin user
+  const { data: user } = await supabase.from('jh_admin_users').select('*').eq('email', email).single();
+
+  if (!user) {
+    await supabase.from('jh_admin_login_log').insert({ email, ip_address: ip, success: false });
+    return res.render('admin/login', { title: 'Admin Login', error: 'Invalid credentials' });
+  }
+
+  // Check if account is locked
+  if (user.locked_until && new Date(user.locked_until) > new Date()) {
+    const minsLeft = Math.ceil((new Date(user.locked_until) - new Date()) / 60000);
+    return res.render('admin/login', { title: 'Admin Login', error: `Account locked. Try again in ${minsLeft} minutes.` });
+  }
+
+  // Verify password
+  const valid = await bcrypt.compare(password, user.password_hash);
+
+  if (!valid) {
+    const attempts = (user.login_attempts || 0) + 1;
+    const updates = { login_attempts: attempts };
+    if (attempts >= MAX_LOGIN_ATTEMPTS) {
+      updates.locked_until = new Date(Date.now() + LOCK_DURATION_MIN * 60000).toISOString();
+      updates.login_attempts = 0;
+    }
+    await supabase.from('jh_admin_users').update(updates).eq('id', user.id);
+    await supabase.from('jh_admin_login_log').insert({ email, ip_address: ip, success: false });
+
+    const remaining = MAX_LOGIN_ATTEMPTS - attempts;
+    const msg = remaining > 0 ? `Invalid credentials. ${remaining} attempts remaining.` : `Too many failed attempts. Account locked for ${LOCK_DURATION_MIN} minutes.`;
+    return res.render('admin/login', { title: 'Admin Login', error: msg });
+  }
+
+  // Success — reset attempts, set session
+  await supabase.from('jh_admin_users').update({ login_attempts: 0, locked_until: null, last_login: new Date().toISOString() }).eq('id', user.id);
+  await supabase.from('jh_admin_login_log').insert({ email, ip_address: ip, success: true });
+
+  req.session.isAdmin = true;
+  req.session.adminEmail = user.email;
+  req.session.adminName = user.name;
+  req.session.adminRole = user.role;
+
+  res.redirect('/admin');
 });
 
 router.get('/logout', (req, res) => {
