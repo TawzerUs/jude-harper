@@ -1,0 +1,47 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main class="flex-1 py-12 px-4">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="font-serif text-3xl font-bold">Orders</h1>
+      <a href="/admin" class="text-brand-500 hover:text-brand-700 text-sm">&larr; Back to Dashboard</a>
+    </div>
+
+    <div class="bg-white rounded-xl border border-brand-100 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-brand-50 border-b border-brand-100">
+          <tr>
+            <th class="text-left px-4 py-3 font-medium">Date</th>
+            <th class="text-left px-4 py-3 font-medium">Book</th>
+            <th class="text-left px-4 py-3 font-medium">Email</th>
+            <th class="text-left px-4 py-3 font-medium">Amount</th>
+            <th class="text-left px-4 py-3 font-medium">Status</th>
+            <th class="text-left px-4 py-3 font-medium">Downloads</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% orders.forEach(order => { %>
+          <tr class="border-b border-brand-50">
+            <td class="px-4 py-3 text-ink-200"><%= new Date(order.created_at).toLocaleDateString() %></td>
+            <td class="px-4 py-3 font-medium"><%= order.book_title %></td>
+            <td class="px-4 py-3"><%= order.email %></td>
+            <td class="px-4 py-3">$<%= order.amount.toFixed(2) %></td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-1 rounded text-xs font-medium <%= order.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' %>">
+                <%= order.status %>
+              </span>
+            </td>
+            <td class="px-4 py-3"><%= order.download_count %></td>
+          </tr>
+          <% }) %>
+          <% if (orders.length === 0) { %>
+          <tr><td colspan="6" class="px-4 py-8 text-center text-ink-200">No orders yet.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,12 @@
+<nav class="border-b border-brand-100 bg-white/80 backdrop-blur sticky top-0 z-50">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    <a href="/" class="font-serif text-2xl font-bold text-ink-900 tracking-tight">Jude Harper</a>
+    <div class="flex items-center gap-6 text-sm font-medium text-ink-800">
+      <a href="/books" class="hover:text-brand-500 transition">Books</a>
+      <a href="/about" class="hover:text-brand-500 transition">About</a>
+      <% if (isAdmin) { %>
+        <a href="/admin" class="text-brand-600 hover:text-brand-700 transition">Admin</a>
+      <% } %>
+    </div>
+  </div>
+</nav>

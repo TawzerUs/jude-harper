@@ -1,0 +1,63 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<main class="flex-1">
+  <!-- Hero -->
+  <section class="py-20 px-4 text-center bg-gradient-to-b from-white to-brand-50">
+    <div class="max-w-3xl mx-auto">
+      <h1 class="font-serif text-5xl md:text-6xl font-bold text-ink-900 mb-6 leading-tight">Stories that stay with you</h1>
+      <p class="text-lg text-ink-200 mb-8 max-w-xl mx-auto">Discover books by Jude Harper. Thought-provoking reads delivered straight to your device.</p>
+      <a href="/books" class="inline-block bg-ink-900 text-white px-8 py-3 rounded-lg font-medium hover:bg-ink-800 transition">Browse Books</a>
+    </div>
+  </section>
+
+  <!-- Featured Books -->
+  <% if (featured.length > 0) { %>
+  <section class="py-16 px-4">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="font-serif text-3xl font-bold mb-8">Featured</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <% featured.forEach(book => { %>
+          <%- include('partials/book-card', { book }) %>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- All Books -->
+  <% if (books.length > 0) { %>
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="font-serif text-3xl font-bold mb-8">All Books</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <% books.forEach(book => { %>
+          <%- include('partials/book-card', { book }) %>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+  <% } else { %>
+  <section class="py-16 px-4 text-center">
+    <p class="text-ink-200 text-lg">Books coming soon. Subscribe to get notified!</p>
+  </section>
+  <% } %>
+
+  <!-- Newsletter -->
+  <section class="py-16 px-4 bg-ink-900 text-white">
+    <div class="max-w-xl mx-auto text-center">
+      <h2 class="font-serif text-3xl font-bold mb-4">Stay in the loop</h2>
+      <p class="text-ink-200 mb-6">Get notified about new releases and exclusive content.</p>
+      <% if (typeof subscribed !== 'undefined' || (typeof req !== 'undefined' && req.query?.subscribed)) { %>
+        <p class="text-brand-300 font-medium">Thanks for subscribing!</p>
+      <% } else { %>
+      <form action="/subscribe" method="POST" class="flex gap-3 max-w-md mx-auto">
+        <input type="email" name="email" required placeholder="your@email.com" class="flex-1 px-4 py-3 rounded-lg text-ink-900 bg-white focus:outline-none focus:ring-2 focus:ring-brand-400">
+        <button type="submit" class="bg-brand-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-brand-600 transition">Subscribe</button>
+      </form>
+      <% } %>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

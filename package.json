@@ -1,0 +1,31 @@
+{
+  "name": "jude-harper",
+  "version": "1.0.0",
+  "description": "Jude Harper - Book Store & Digital Products",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TawzerUs/jude-harper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/TawzerUs/jude-harper/issues"
+  },
+  "homepage": "https://github.com/TawzerUs/jude-harper#readme",
+  "dependencies": {
+    "better-sqlite3": "^12.8.0",
+    "dotenv": "^17.4.1",
+    "ejs": "^5.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "multer": "^2.1.1",
+    "stripe": "^22.0.0"
+  }
+}
