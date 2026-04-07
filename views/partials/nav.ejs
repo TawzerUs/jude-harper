@@ -1,18 +1,44 @@
 <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-border-subtle">
-  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
-    <a href="/" class="font-serif text-2xl font-bold text-fg-primary">Jude Harper</a>
-    <div class="flex items-center gap-8 text-sm font-medium">
+  <div class="max-w-7xl mx-auto px-4 md:px-12 py-3 md:py-4 flex items-center justify-between">
+    <a href="/" class="font-serif text-xl md:text-2xl font-bold text-fg-primary whitespace-nowrap">Jude Harper</a>
+
+    <!-- Desktop nav -->
+    <div class="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium">
       <a href="/books" class="text-fg-secondary hover:text-fg-primary transition">Books</a>
       <a href="/audiobooks" class="text-fg-secondary hover:text-fg-primary transition">Audiobooks</a>
       <a href="/bundles" class="text-fg-secondary hover:text-fg-primary transition">Bundles</a>
       <a href="/about" class="text-fg-secondary hover:text-fg-primary transition">About</a>
-      <a href="/track" class="text-fg-secondary hover:text-fg-primary transition">Track Order</a>
+      <a href="/track" class="text-fg-secondary hover:text-fg-primary transition">Track</a>
       <% if (isAdmin) { %>
         <a href="/admin" class="text-accent hover:text-orange-700 transition"><%= adminName || 'Dashboard' %></a>
       <% } else { %>
         <a href="/admin/login" class="text-fg-secondary hover:text-fg-primary transition">Login</a>
       <% } %>
-      <a href="/books" class="bg-accent text-white px-6 py-2.5 rounded-pill text-sm font-semibold hover:bg-orange-600 transition">Shop Now</a>
+      <a href="/books" class="bg-accent text-white px-5 py-2 rounded-pill text-sm font-semibold hover:bg-orange-600 transition">Shop Now</a>
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button id="menuToggle" onclick="document.getElementById('mobileMenu').classList.toggle('hidden')" class="md:hidden p-2 text-fg-primary">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobileMenu" class="hidden md:hidden border-t border-border-subtle bg-white">
+    <div class="px-4 py-4 space-y-1">
+      <a href="/books" class="block py-2.5 px-3 rounded-xl text-fg-secondary hover:bg-surface-secondary hover:text-fg-primary transition font-medium">Books</a>
+      <a href="/audiobooks" class="block py-2.5 px-3 rounded-xl text-fg-secondary hover:bg-surface-secondary hover:text-fg-primary transition font-medium">Audiobooks</a>
+      <a href="/bundles" class="block py-2.5 px-3 rounded-xl text-fg-secondary hover:bg-surface-secondary hover:text-fg-primary transition font-medium">Bundles</a>
+      <a href="/about" class="block py-2.5 px-3 rounded-xl text-fg-secondary hover:bg-surface-secondary hover:text-fg-primary transition font-medium">About</a>
+      <a href="/track" class="block py-2.5 px-3 rounded-xl text-fg-secondary hover:bg-surface-secondary hover:text-fg-primary transition font-medium">Track Order</a>
+      <% if (isAdmin) { %>
+        <a href="/admin" class="block py-2.5 px-3 rounded-xl text-accent font-medium"><%= adminName || 'Dashboard' %></a>
+      <% } else { %>
+        <a href="/admin/login" class="block py-2.5 px-3 rounded-xl text-fg-secondary hover:bg-surface-secondary transition font-medium">Login</a>
+      <% } %>
+      <div class="pt-2">
+        <a href="/books" class="block text-center bg-accent text-white py-3 rounded-pill font-semibold hover:bg-orange-600 transition">Shop Now</a>
+      </div>
     </div>
   </div>
 </nav>

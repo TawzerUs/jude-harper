@@ -1,16 +1,52 @@
 <nav class="bg-surface-inverse text-white">
-  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
-    <a href="/admin" class="font-serif text-xl font-bold hover:text-gray-300 transition">Jude Harper — Admin</a>
-    <div class="flex items-center gap-6 text-sm">
-      <a href="/admin" class="<%= typeof page !== 'undefined' && page === 'dashboard' ? 'text-accent font-semibold' : 'text-gray-400 hover:text-white transition' %>">Dashboard</a>
-      <a href="/admin/orders" class="<%= typeof page !== 'undefined' && page === 'orders' ? 'text-accent font-semibold' : 'text-gray-400 hover:text-white transition' %>">Orders</a>
-      <a href="/admin/fulfillment" class="<%= typeof page !== 'undefined' && page === 'fulfillment' ? 'text-accent font-semibold' : 'text-gray-400 hover:text-white transition' %>">Fulfillment</a>
-      <a href="/admin/bundles" class="<%= typeof page !== 'undefined' && page === 'bundles' ? 'text-accent font-semibold' : 'text-gray-400 hover:text-white transition' %>">Bundles</a>
-      <a href="/admin/subscribers" class="<%= typeof page !== 'undefined' && page === 'subscribers' ? 'text-accent font-semibold' : 'text-gray-400 hover:text-white transition' %>">Subscribers</a>
-      <a href="/" class="text-gray-400 hover:text-white transition">View Site &rarr;</a>
+  <div class="max-w-7xl mx-auto px-4 md:px-12 py-3 md:py-4 flex items-center justify-between">
+    <a href="/admin" class="font-serif text-lg md:text-xl font-bold hover:text-gray-300 transition whitespace-nowrap">JH Admin</a>
+
+    <!-- Desktop admin nav -->
+    <div class="hidden lg:flex items-center gap-5 text-sm">
+      <% const links = [
+        { href: '/admin', label: 'Dashboard', key: 'dashboard' },
+        { href: '/admin/orders', label: 'Orders', key: 'orders' },
+        { href: '/admin/fulfillment', label: 'Fulfillment', key: 'fulfillment' },
+        { href: '/admin/bundles', label: 'Bundles', key: 'bundles' },
+        { href: '/admin/subscribers', label: 'Subscribers', key: 'subscribers' }
+      ]; %>
+      <% links.forEach(l => { %>
+        <a href="<%= l.href %>" class="<%= typeof page !== 'undefined' && page === l.key ? 'text-accent font-semibold' : 'text-gray-400 hover:text-white transition' %>"><%= l.label %></a>
+      <% }) %>
+      <a href="/" class="text-gray-400 hover:text-white transition">Site &rarr;</a>
       <span class="text-gray-600">|</span>
       <span class="text-gray-500 text-xs"><%= typeof adminName !== 'undefined' && adminName ? adminName : 'Admin' %></span>
       <a href="/admin/logout" class="border border-gray-700 px-3 py-1 rounded-pill text-gray-400 hover:text-white hover:border-gray-500 transition text-xs">Logout</a>
+    </div>
+
+    <!-- Mobile admin hamburger -->
+    <button onclick="document.getElementById('adminMobileMenu').classList.toggle('hidden')" class="lg:hidden p-2 text-gray-400">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+
+  <!-- Mobile admin menu -->
+  <div id="adminMobileMenu" class="hidden lg:hidden border-t border-gray-800 bg-surface-inverse">
+    <div class="px-4 py-3 space-y-1">
+      <% const mLinks = [
+        { href: '/admin', label: 'Dashboard', key: 'dashboard' },
+        { href: '/admin/orders', label: 'Orders', key: 'orders' },
+        { href: '/admin/fulfillment', label: 'Fulfillment', key: 'fulfillment' },
+        { href: '/admin/bundles', label: 'Bundles', key: 'bundles' },
+        { href: '/admin/subscribers', label: 'Subscribers', key: 'subscribers' }
+      ]; %>
+      <% mLinks.forEach(l => { %>
+        <a href="<%= l.href %>" class="block py-2 px-3 rounded-lg text-sm <%= typeof page !== 'undefined' && page === l.key ? 'text-accent font-semibold bg-white/5' : 'text-gray-400 hover:text-white hover:bg-white/5' %> transition"><%= l.label %></a>
+      <% }) %>
+      <div class="border-t border-gray-800 mt-2 pt-2 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/" class="text-gray-400 hover:text-white transition text-sm">View Site</a>
+          <span class="text-gray-700">|</span>
+          <span class="text-gray-500 text-xs"><%= typeof adminName !== 'undefined' && adminName ? adminName : 'Admin' %></span>
+        </div>
+        <a href="/admin/logout" class="border border-gray-700 px-3 py-1 rounded-pill text-gray-400 hover:text-white text-xs">Logout</a>
+      </div>
     </div>
   </div>
 </nav>
