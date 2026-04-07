@@ -1,4 +1,3 @@
-/* Custom styles beyond Tailwind */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -10,3 +9,9 @@
   margin-bottom: 1em;
   line-height: 1.7;
 }
+
+/* Smooth transitions */
+* { transition-property: color, background-color, border-color, opacity, box-shadow, transform; }
+
+/* Accent checkbox */
+input[type="checkbox"] { accent-color: #FF5C00; }

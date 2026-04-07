@@ -1,71 +1,94 @@
 <%- include('../partials/head') %>
-<%- include('../partials/nav') %>
 
-<main class="flex-1 py-12 px-4">
-  <div class="max-w-6xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
+<!-- Admin Nav -->
+<nav class="bg-surface-inverse text-white">
+  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
+    <span class="font-serif text-xl font-bold">Jude Harper — Admin</span>
+    <div class="flex items-center gap-6 text-sm">
+      <a href="/admin" class="text-accent font-semibold">Dashboard</a>
+      <a href="/admin/orders" class="text-gray-400 hover:text-white transition">Orders</a>
+      <a href="/admin/subscribers" class="text-gray-400 hover:text-white transition">Subscribers</a>
+      <a href="/" class="text-gray-400 hover:text-white transition">View Site &rarr;</a>
+      <a href="/admin/logout" class="border border-gray-700 px-4 py-1.5 rounded-pill text-gray-400 hover:text-white hover:border-gray-500 transition">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-1 px-6 md:px-12 py-8">
+  <div class="max-w-7xl mx-auto space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
       <h1 class="font-serif text-3xl font-bold">Dashboard</h1>
-      <div class="flex gap-3">
-        <a href="/admin/books/new" class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition">+ Add Book</a>
-        <a href="/admin/orders" class="border border-brand-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-50 transition">Orders</a>
-        <a href="/admin/subscribers" class="border border-brand-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-50 transition">Subscribers</a>
-        <a href="/admin/logout" class="text-ink-200 px-4 py-2 text-sm hover:text-red-500 transition">Logout</a>
-      </div>
+      <a href="/admin/books/new" class="bg-accent text-white px-5 py-2.5 rounded-pill font-semibold text-sm hover:bg-orange-600 transition flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Add Book
+      </a>
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-      <div class="bg-white p-6 rounded-xl border border-brand-100">
-        <p class="text-sm text-ink-200">Total Revenue</p>
-        <p class="text-3xl font-bold text-brand-600">$<%= revenue.toFixed(2) %></p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+      <div class="bg-surface-secondary p-6 rounded-bento">
+        <p class="text-sm text-fg-muted">Total Revenue</p>
+        <p class="text-3xl font-bold mt-1">$<%= revenue.toFixed(2) %></p>
       </div>
-      <div class="bg-white p-6 rounded-xl border border-brand-100">
-        <p class="text-sm text-ink-200">Orders</p>
-        <p class="text-3xl font-bold"><%= orderCount %></p>
+      <div class="bg-surface-secondary p-6 rounded-bento">
+        <p class="text-sm text-fg-muted">Orders</p>
+        <p class="text-3xl font-bold mt-1"><%= orderCount %></p>
       </div>
-      <div class="bg-white p-6 rounded-xl border border-brand-100">
-        <p class="text-sm text-ink-200">Subscribers</p>
-        <p class="text-3xl font-bold"><%= subscriberCount %></p>
+      <div class="bg-surface-secondary p-6 rounded-bento">
+        <p class="text-sm text-fg-muted">Subscribers</p>
+        <p class="text-3xl font-bold mt-1"><%= subscriberCount %></p>
+      </div>
+      <div class="bg-surface-secondary p-6 rounded-bento">
+        <p class="text-sm text-fg-muted">Books</p>
+        <p class="text-3xl font-bold mt-1 text-accent"><%= books.length %></p>
       </div>
     </div>
 
     <!-- Books Table -->
-    <h2 class="font-serif text-2xl font-bold mb-4">Books</h2>
-    <div class="bg-white rounded-xl border border-brand-100 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-brand-50 border-b border-brand-100">
-          <tr>
-            <th class="text-left px-4 py-3 font-medium">Title</th>
-            <th class="text-left px-4 py-3 font-medium">Price</th>
-            <th class="text-left px-4 py-3 font-medium">Status</th>
-            <th class="text-left px-4 py-3 font-medium">Featured</th>
-            <th class="text-right px-4 py-3 font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% books.forEach(book => { %>
-          <tr class="border-b border-brand-50 hover:bg-brand-50/50">
-            <td class="px-4 py-3 font-medium"><%= book.title %></td>
-            <td class="px-4 py-3"><% if (book.price === 0) { %>Free<% } else { %>$<%= book.price.toFixed(2) %><% } %></td>
-            <td class="px-4 py-3">
-              <span class="px-2 py-1 rounded text-xs font-medium <%= book.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' %>">
-                <%= book.active ? 'Active' : 'Draft' %>
-              </span>
-            </td>
-            <td class="px-4 py-3"><%= book.featured ? 'Yes' : '-' %></td>
-            <td class="px-4 py-3 text-right">
-              <a href="/admin/books/<%= book.id %>/edit" class="text-brand-500 hover:text-brand-700 mr-3">Edit</a>
-              <form action="/admin/books/<%= book.id %>/delete" method="POST" class="inline" onsubmit="return confirm('Delete this book?')">
-                <button class="text-red-400 hover:text-red-600">Delete</button>
-              </form>
-            </td>
-          </tr>
-          <% }) %>
-          <% if (books.length === 0) { %>
-          <tr><td colspan="5" class="px-4 py-8 text-center text-ink-200">No books yet. Add your first book!</td></tr>
-          <% } %>
-        </tbody>
-      </table>
+    <div>
+      <h2 class="font-serif text-2xl font-bold mb-4">Books</h2>
+      <div class="rounded-bento border border-border-subtle overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-surface-secondary">
+            <tr>
+              <th class="text-left px-5 py-3 font-semibold text-fg-muted">Title</th>
+              <th class="text-left px-5 py-3 font-semibold text-fg-muted">Price</th>
+              <th class="text-left px-5 py-3 font-semibold text-fg-muted">Formats</th>
+              <th class="text-left px-5 py-3 font-semibold text-fg-muted">Status</th>
+              <th class="text-left px-5 py-3 font-semibold text-fg-muted">Featured</th>
+              <th class="text-right px-5 py-3 font-semibold text-fg-muted">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% books.forEach(book => { %>
+            <tr class="border-t border-border-subtle hover:bg-surface-secondary/50 transition">
+              <td class="px-5 py-3.5 font-medium"><%= book.title %></td>
+              <td class="px-5 py-3.5">$<%= parseFloat(book.price).toFixed(2) %></td>
+              <td class="px-5 py-3.5">
+                <% if (book.has_digital !== false) { %><span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-pill font-medium mr-1">Digital</span><% } %>
+                <% if (book.has_paperback) { %><span class="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-pill font-medium">Paper</span><% } %>
+              </td>
+              <td class="px-5 py-3.5">
+                <span class="px-3 py-1 rounded-pill text-xs font-semibold <%= book.active ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600' %>">
+                  <%= book.active ? 'Active' : 'Draft' %>
+                </span>
+              </td>
+              <td class="px-5 py-3.5"><%= book.featured ? 'Yes' : '—' %></td>
+              <td class="px-5 py-3.5 text-right">
+                <a href="/admin/books/<%= book.id %>/edit" class="text-accent font-semibold hover:text-orange-700 mr-3">Edit</a>
+                <form action="/admin/books/<%= book.id %>/delete" method="POST" class="inline" onsubmit="return confirm('Delete this book?')">
+                  <button class="text-red-400 hover:text-red-600">Delete</button>
+                </form>
+              </td>
+            </tr>
+            <% }) %>
+            <% if (books.length === 0) { %>
+            <tr><td colspan="6" class="px-5 py-10 text-center text-fg-muted">No books yet. Add your first book!</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </main>

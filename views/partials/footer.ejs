@@ -1,13 +1,15 @@
-<footer class="mt-auto border-t border-brand-100 bg-white">
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-      <p class="font-serif text-lg font-bold text-ink-800">Jude Harper</p>
-      <div class="flex gap-6 text-sm text-ink-200">
-        <a href="/books" class="hover:text-brand-500">Books</a>
-        <a href="/about" class="hover:text-brand-500">About</a>
-        <a href="/admin/login" class="hover:text-brand-500">Admin</a>
+<footer class="mt-auto bg-surface-inverse text-fg-inverse">
+  <div class="max-w-7xl mx-auto px-6 md:px-12 py-12">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+      <p class="font-serif text-2xl font-bold">Jude Harper</p>
+      <div class="flex gap-8 text-sm text-gray-400">
+        <a href="/books" class="hover:text-white transition">Books</a>
+        <a href="/about" class="hover:text-white transition">About</a>
+        <a href="/admin/login" class="hover:text-white transition">Admin</a>
       </div>
-      <p class="text-xs text-ink-200">&copy; <%= new Date().getFullYear() %> Jude Harper. All rights reserved.</p>
+    </div>
+    <div class="border-t border-gray-800 pt-6">
+      <p class="text-xs text-gray-500">&copy; <%= new Date().getFullYear() %> Jude Harper. All rights reserved.</p>
     </div>
   </div>
 </footer>

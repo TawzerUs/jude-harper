@@ -1,20 +1,23 @@
-<a href="/book/<%= book.slug %>" class="group block bg-brand-50 rounded-xl overflow-hidden border border-brand-100 hover:shadow-lg transition-all">
-  <div class="aspect-[3/4] bg-brand-100 overflow-hidden">
+<a href="/book/<%= book.slug %>" class="group block bg-surface-secondary rounded-bento overflow-hidden hover:shadow-lg transition-all duration-300">
+  <div class="aspect-[3/4] bg-gray-100 overflow-hidden">
     <% if (book.cover_image) { %>
-      <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+      <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
     <% } else { %>
-      <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-200 to-brand-300">
-        <span class="font-serif text-2xl text-white/80 text-center px-4"><%= book.title %></span>
+      <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
+        <span class="font-serif text-2xl text-accent/60 text-center px-6"><%= book.title %></span>
       </div>
     <% } %>
   </div>
-  <div class="p-5">
-    <h3 class="font-serif text-xl font-bold mb-2 group-hover:text-brand-600 transition"><%= book.title %></h3>
+  <div class="p-6">
+    <h3 class="font-serif text-xl font-bold mb-2 group-hover:text-accent transition"><%= book.title %></h3>
     <% if (book.description) { %>
-      <p class="text-sm text-ink-200 mb-3 line-clamp-2"><%= book.description %></p>
+      <p class="text-sm text-fg-secondary mb-4 line-clamp-2 leading-relaxed"><%= book.description %></p>
     <% } %>
-    <p class="text-lg font-bold text-brand-600">
-      <% if (book.price === 0) { %>Free<% } else { %>$<%= book.price.toFixed(2) %><% } %>
-    </p>
+    <div class="flex items-center justify-between">
+      <p class="text-xl font-bold text-accent">
+        <% if (book.price == 0) { %>Free<% } else { %>$<%= parseFloat(book.price).toFixed(2) %><% } %>
+      </p>
+      <span class="bg-accent text-white text-xs font-semibold px-4 py-2 rounded-pill group-hover:bg-orange-600 transition">Buy Now</span>
+    </div>
   </div>
 </a>

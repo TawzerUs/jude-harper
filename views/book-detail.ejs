@@ -1,59 +1,174 @@
 <%- include('partials/head') %>
 <%- include('partials/nav') %>
 
-<main class="flex-1 py-16 px-4">
-  <div class="max-w-5xl mx-auto">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-      <!-- Cover -->
-      <div class="aspect-[3/4] bg-brand-100 rounded-xl overflow-hidden">
+<main class="flex-1 py-12 md:py-16 px-6 md:px-12">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 md:gap-12">
+
+    <!-- Gallery Thumbnails -->
+    <div class="hidden md:flex flex-col gap-2 w-20 shrink-0">
+      <div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-accent cursor-pointer">
         <% if (book.cover_image) { %>
-          <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-cover">
+          <img src="<%= book.cover_image %>" alt="" class="w-full h-full object-cover">
+        <% } %>
+      </div>
+      <% if (typeof gallery !== 'undefined' && gallery.length > 0) { %>
+        <% gallery.forEach((img, i) => { %>
+          <div class="w-20 h-20 rounded-lg overflow-hidden border border-border-subtle cursor-pointer hover:border-accent transition" onclick="setMainImage('<%= img.url %>')">
+            <% if (img.type === 'video') { %>
+              <div class="w-full h-full bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-fg-muted" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+            <% } else { %>
+              <img src="<%= img.url %>" alt="" class="w-full h-full object-cover">
+            <% } %>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <!-- Main Cover -->
+    <div class="w-full md:w-[460px] shrink-0">
+      <div class="aspect-[3/4] rounded-bento overflow-hidden bg-gray-100">
+        <% if (book.cover_image) { %>
+          <img id="mainImage" src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-cover">
         <% } else { %>
-          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-200 to-brand-300">
-            <span class="font-serif text-3xl text-white/80 text-center px-6"><%= book.title %></span>
+          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
+            <span class="font-serif text-3xl text-accent/60 text-center px-6"><%= book.title %></span>
           </div>
         <% } %>
       </div>
-
-      <!-- Details -->
-      <div class="flex flex-col justify-center">
-        <span class="text-sm text-brand-500 font-medium uppercase tracking-wider mb-2"><%= book.category %></span>
-        <h1 class="font-serif text-4xl font-bold mb-4"><%= book.title %></h1>
-        <p class="text-ink-200 mb-6"><%= book.description %></p>
-
-        <% if (book.long_description) { %>
-          <div class="prose prose-sm text-ink-200 mb-8">
-            <%= book.long_description %>
-          </div>
-        <% } %>
-
-        <div class="flex items-center gap-6 mb-8">
-          <span class="text-3xl font-bold text-brand-600">
-            <% if (book.price === 0) { %>Free<% } else { %>$<%= book.price.toFixed(2) %><% } %>
-          </span>
-          <span class="text-sm text-ink-200">Digital download (PDF)</span>
+      <!-- Mobile gallery -->
+      <% if (typeof gallery !== 'undefined' && gallery.length > 0) { %>
+      <div class="flex md:hidden gap-2 mt-3 overflow-x-auto">
+        <div class="w-16 h-16 rounded-lg overflow-hidden border-2 border-accent shrink-0">
+          <% if (book.cover_image) { %><img src="<%= book.cover_image %>" class="w-full h-full object-cover"><% } %>
         </div>
+        <% gallery.forEach(img => { %>
+          <div class="w-16 h-16 rounded-lg overflow-hidden border border-border-subtle shrink-0">
+            <img src="<%= img.url %>" class="w-full h-full object-cover">
+          </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
 
-        <% if (book.price > 0) { %>
-          <button onclick="buyBook(<%= book.id %>)" class="bg-ink-900 text-white px-8 py-4 rounded-lg font-medium text-lg hover:bg-ink-800 transition w-full md:w-auto text-center">
-            Buy Now
-          </button>
-        <% } else { %>
-          <a href="/api/download/free-<%= book.slug %>" class="bg-ink-900 text-white px-8 py-4 rounded-lg font-medium text-lg hover:bg-ink-800 transition w-full md:w-auto text-center inline-block">
-            Download Free
-          </a>
+    <!-- Details -->
+    <div class="flex-1 space-y-6">
+      <span class="inline-block bg-surface-secondary text-accent text-xs font-semibold px-3 py-1.5 rounded-pill uppercase tracking-wider"><%= book.category || 'Book' %></span>
+      <h1 class="font-serif text-3xl md:text-4xl font-bold leading-tight"><%= book.title %></h1>
+      <p class="text-fg-secondary leading-relaxed"><%= book.description %></p>
+
+      <% if (book.long_description) { %>
+        <div class="text-fg-secondary leading-relaxed text-sm"><%= book.long_description %></div>
+      <% } %>
+
+      <!-- Format Toggle -->
+      <% if (book.has_digital || book.has_paperback) { %>
+      <div class="flex rounded-xl border border-border-subtle overflow-hidden">
+        <% if (book.has_digital !== false) { %>
+        <button id="btnDigital" onclick="selectFormat('digital')" class="flex-1 py-3 text-sm font-semibold text-center bg-accent text-white transition">Digital (PDF)</button>
         <% } %>
+        <% if (book.has_paperback) { %>
+        <button id="btnPaperback" onclick="selectFormat('paperback')" class="flex-1 py-3 text-sm font-medium text-center bg-surface-secondary text-fg-secondary transition">Paperback</button>
+        <% } %>
+      </div>
+      <% } %>
+
+      <!-- Instant download info -->
+      <div id="digitalInfo" class="flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl">
+        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span class="text-sm text-fg-secondary">Instant download after purchase — read on any device</span>
+      </div>
+      <div id="paperbackInfo" class="hidden flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl">
+        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h2a2 2 0 012 2v6a2 2 0 01-2 2H6"/><path d="M2 16h16"/></svg>
+        <span class="text-sm text-fg-secondary">Printed & shipped by Lulu — 5-10 business days</span>
+      </div>
+
+      <!-- Price & CTA -->
+      <div class="flex items-center gap-6">
+        <span id="priceDisplay" class="text-3xl font-bold">$<%= parseFloat(book.price).toFixed(2) %></span>
+        <span class="text-sm text-fg-muted" id="formatLabel">Digital Download (PDF)</span>
+      </div>
+
+      <button onclick="buyBook(<%= book.id %>)" class="bg-accent text-white px-8 py-4 rounded-pill font-semibold text-lg hover:bg-orange-600 transition w-full md:w-auto">
+        Buy Now — $<span id="ctaPrice"><%= parseFloat(book.price).toFixed(2) %></span>
+      </button>
+
+      <!-- Product Details -->
+      <div class="border-t border-border-subtle pt-6 space-y-3">
+        <h3 class="font-serif text-xl font-bold">Product details</h3>
+        <div class="grid grid-cols-2 gap-y-2 text-sm">
+          <% if (book.publisher) { %><div><span class="font-semibold">Publisher</span> : <%= book.publisher %></div><% } %>
+          <% if (book.publication_date) { %><div><span class="font-semibold">Publication date</span> : <%= new Date(book.publication_date).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'}) %></div><% } %>
+          <% if (book.language) { %><div><span class="font-semibold">Language</span> : <%= book.language %></div><% } %>
+          <% if (book.pages) { %><div><span class="font-semibold">Print length</span> : <%= book.pages %> pages</div><% } %>
+          <% if (book.isbn) { %><div><span class="font-semibold">ISBN-13</span> : <%= book.isbn %></div><% } %>
+          <% if (book.dimensions) { %><div><span class="font-semibold">Dimensions</span> : <%= book.dimensions %></div><% } %>
+          <% if (book.weight) { %><div><span class="font-semibold">Weight</span> : <%= book.weight %> oz</div><% } %>
+        </div>
+      </div>
+
+      <!-- Shipping & Delivery -->
+      <div class="border-t border-border-subtle pt-6 space-y-4">
+        <h3 class="font-serif text-xl font-bold">Shipping & delivery</h3>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-accent mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <div><p class="font-semibold text-sm">Digital: Instant download</p><p class="text-xs text-fg-muted">Available immediately after purchase</p></div>
+          </div>
+          <% if (book.has_paperback) { %>
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-accent mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h2a2 2 0 012 2v6a2 2 0 01-2 2H6"/></svg>
+            <div><p class="font-semibold text-sm">Paperback: 5-10 business days</p><p class="text-xs text-fg-muted">Printed & shipped by Lulu</p></div>
+          </div>
+          <% } %>
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-accent mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+            <div><p class="font-semibold text-sm">Secure checkout</p><p class="text-xs text-fg-muted">Powered by Stripe — your data is safe</p></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </main>
 
 <script>
+function setMainImage(url) {
+  const img = document.getElementById('mainImage');
+  if (img) img.src = url;
+}
+
+let selectedFormat = 'digital';
+const digitalPrice = <%= parseFloat(book.price).toFixed(2) %>;
+const paperbackPrice = <%= book.paperback_price ? parseFloat(book.paperback_price).toFixed(2) : parseFloat(book.price).toFixed(2) %>;
+
+function selectFormat(fmt) {
+  selectedFormat = fmt;
+  const btnD = document.getElementById('btnDigital');
+  const btnP = document.getElementById('btnPaperback');
+  const dInfo = document.getElementById('digitalInfo');
+  const pInfo = document.getElementById('paperbackInfo');
+  const price = fmt === 'digital' ? digitalPrice : paperbackPrice;
+
+  if (btnD && btnP) {
+    if (fmt === 'digital') {
+      btnD.className = 'flex-1 py-3 text-sm font-semibold text-center bg-accent text-white transition';
+      btnP.className = 'flex-1 py-3 text-sm font-medium text-center bg-surface-secondary text-fg-secondary transition';
+    } else {
+      btnP.className = 'flex-1 py-3 text-sm font-semibold text-center bg-accent text-white transition';
+      btnD.className = 'flex-1 py-3 text-sm font-medium text-center bg-surface-secondary text-fg-secondary transition';
+    }
+  }
+  if (dInfo) dInfo.className = fmt === 'digital' ? 'flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl' : 'hidden';
+  if (pInfo) pInfo.className = fmt === 'paperback' ? 'flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl' : 'hidden';
+  document.getElementById('priceDisplay').textContent = '$' + price.toFixed(2);
+  document.getElementById('ctaPrice').textContent = price.toFixed(2);
+  document.getElementById('formatLabel').textContent = fmt === 'digital' ? 'Digital Download (PDF)' : 'Paperback — Ships in 5-10 days';
+}
+
 async function buyBook(bookId) {
   const res = await fetch('/api/checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ bookId })
+    body: JSON.stringify({ bookId, format: selectedFormat })
   });
   const data = await res.json();
   if (data.url) window.location.href = data.url;

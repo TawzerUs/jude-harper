@@ -1,12 +1,13 @@
-<nav class="border-b border-brand-100 bg-white/80 backdrop-blur sticky top-0 z-50">
-  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-    <a href="/" class="font-serif text-2xl font-bold text-ink-900 tracking-tight">Jude Harper</a>
-    <div class="flex items-center gap-6 text-sm font-medium text-ink-800">
-      <a href="/books" class="hover:text-brand-500 transition">Books</a>
-      <a href="/about" class="hover:text-brand-500 transition">About</a>
+<nav class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-border-subtle">
+  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
+    <a href="/" class="font-serif text-2xl font-bold text-fg-primary">Jude Harper</a>
+    <div class="flex items-center gap-8 text-sm font-medium">
+      <a href="/books" class="text-fg-secondary hover:text-fg-primary transition">Books</a>
+      <a href="/about" class="text-fg-secondary hover:text-fg-primary transition">About</a>
       <% if (isAdmin) { %>
-        <a href="/admin" class="text-brand-600 hover:text-brand-700 transition">Admin</a>
+        <a href="/admin" class="text-accent hover:text-orange-700 transition">Admin</a>
       <% } %>
+      <a href="/books" class="bg-accent text-white px-6 py-2.5 rounded-pill text-sm font-semibold hover:bg-orange-600 transition">Shop Now</a>
     </div>
   </div>
 </nav>

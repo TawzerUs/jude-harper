@@ -15,11 +15,14 @@ router.get('/books', async (req, res) => {
   res.render('books', { title: 'All Books - Jude Harper', books: books || [] });
 });
 
-// Single book page
+// Single book page with gallery
 router.get('/book/:slug', async (req, res) => {
   const { data: book } = await supabase.from('jh_books').select('*').eq('slug', req.params.slug).eq('active', true).single();
   if (!book) return res.status(404).render('404', { title: 'Book Not Found' });
-  res.render('book-detail', { title: `${book.title} - Jude Harper`, book });
+
+  const { data: gallery } = await supabase.from('jh_book_gallery').select('*').eq('book_id', book.id).order('sort_order', { ascending: true });
+
+  res.render('book-detail', { title: `${book.title} - Jude Harper`, book, gallery: gallery || [] });
 });
 
 // About page

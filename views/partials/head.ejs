@@ -10,19 +10,25 @@
       theme: {
         extend: {
           colors: {
-            brand: { 50: '#fdf8f0', 100: '#f5e6cc', 200: '#e8c88c', 300: '#d4a653', 400: '#c4923a', 500: '#a67832', 600: '#8a6029', 700: '#6e4a20', 800: '#523617', 900: '#36230f' },
-            ink: { 50: '#f5f5f4', 100: '#e7e5e4', 200: '#d6d3d1', 800: '#292524', 900: '#1c1917', 950: '#0c0a09' }
+            surface: { primary: '#FFFFFF', secondary: '#F7F8FA', inverse: '#0A0A0A' },
+            fg: { primary: '#1A1A1A', secondary: '#666666', muted: '#888888', inverse: '#FFFFFF' },
+            accent: '#FF5C00',
+            border: { subtle: '#E5E7EB' }
           },
           fontFamily: {
-            serif: ['Georgia', 'Cambria', 'serif'],
+            serif: ['Playfair Display', 'Georgia', 'serif'],
             sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          borderRadius: {
+            'bento': '16px',
+            'pill': '9999px',
           }
         }
       }
     }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body class="bg-brand-50 text-ink-900 font-sans min-h-screen flex flex-col">
+<body class="bg-surface-primary text-fg-primary font-sans min-h-screen flex flex-col">
