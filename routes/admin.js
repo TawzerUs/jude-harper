@@ -27,6 +27,7 @@ router.get('/login', (req, res) => {
 });
 
 router.post('/login', (req, res) => {
+  console.log('Login attempt:', { bodyPassword: req.body?.password, envSet: !!process.env.ADMIN_PASSWORD });
   if (req.body.password === process.env.ADMIN_PASSWORD) {
     req.session.isAdmin = true;
     return res.redirect('/admin');
