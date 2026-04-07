@@ -26,7 +26,17 @@ router.get('/login', (req, res) => {
   res.render('admin/login', { title: 'Admin Login', error: null });
 });
 
-router.post('/login', (req, res) => {
+// Debug - remove later
+router.get('/debug-env', (req, res) => {
+  res.json({
+    hasAdminPw: !!process.env.ADMIN_PASSWORD,
+    adminPwLength: (process.env.ADMIN_PASSWORD || '').length,
+    vercel: process.env.VERCEL,
+    nodeEnv: process.env.NODE_ENV
+  });
+});
+
+router.post('/login', express.urlencoded({ extended: true }), (req, res) => {
   const adminPw = process.env.ADMIN_PASSWORD || 'admin123';
   const inputPw = req.body?.password || '';
   if (inputPw === adminPw) {
