@@ -3,17 +3,16 @@ const router = express.Router();
 const crypto = require('crypto');
 const { getDb } = require('../db/setup');
 
-// Stripe checkout session (only if Stripe is configured)
+// Stripe checkout session
 router.post('/checkout', async (req, res) => {
   const { bookId } = req.body;
   if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_your_key_here') {
-    return res.status(400).json({ error: 'Stripe not configured' });
+    return res.status(400).json({ error: 'Stripe not configured yet' });
   }
 
   const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
   const db = getDb();
-  const book = db.prepare('SELECT * FROM books WHERE id = ? AND active = 1').get(bookId);
-  db.close();
+  const book = db.get('books', b => b.id === parseInt(bookId) && b.active === 1);
 
   if (!book) return res.status(404).json({ error: 'Book not found' });
 
@@ -22,11 +21,7 @@ router.post('/checkout', async (req, res) => {
     line_items: [{
       price_data: {
         currency: 'usd',
-        product_data: {
-          name: book.title,
-          description: book.description || undefined,
-          images: book.cover_image ? [`${process.env.SITE_URL}/uploads/${book.cover_image}`] : undefined,
-        },
+        product_data: { name: book.title, description: book.description || undefined },
         unit_amount: Math.round(book.price * 100),
       },
       quantity: 1,
@@ -53,16 +48,16 @@ router.get('/success', async (req, res) => {
   if (session.payment_status === 'paid') {
     const db = getDb();
     const downloadToken = crypto.randomBytes(32).toString('hex');
-    db.prepare(`INSERT INTO orders (book_id, email, stripe_session_id, stripe_payment_id, amount, status, download_token)
-      VALUES (?, ?, ?, ?, ?, 'completed', ?)`).run(
-      session.metadata.book_id,
-      session.customer_details.email,
-      session.id,
-      session.payment_intent,
-      session.amount_total / 100,
-      downloadToken
-    );
-    db.close();
+    db.insert('orders', {
+      book_id: parseInt(session.metadata.book_id),
+      email: session.customer_details.email,
+      stripe_session_id: session.id,
+      stripe_payment_id: session.payment_intent,
+      amount: session.amount_total / 100,
+      status: 'completed',
+      download_token: downloadToken,
+      download_count: 0
+    });
     return res.redirect(`/api/download/${downloadToken}`);
   }
   res.redirect('/?error=payment');
@@ -71,28 +66,21 @@ router.get('/success', async (req, res) => {
 // Download with token
 router.get('/download/:token', (req, res) => {
   const db = getDb();
-  const order = db.prepare(`
-    SELECT orders.*, books.file_path, books.title
-    FROM orders JOIN books ON orders.book_id = books.id
-    WHERE orders.download_token = ? AND orders.status = 'completed'
-  `).get(req.params.token);
+  const order = db.get('orders', o => o.download_token === req.params.token && o.status === 'completed');
 
-  if (!order || !order.file_path) {
-    db.close();
-    return res.status(404).render('404', { title: 'Download Not Found' });
-  }
+  if (!order) return res.status(404).render('404', { title: 'Download Not Found' });
 
-  // Limit downloads to 5
+  const book = db.get('books', b => b.id === order.book_id);
+  if (!book || !book.file_path) return res.status(404).render('404', { title: 'File Not Found' });
+
   if (order.download_count >= 5) {
-    db.close();
     return res.status(403).send('Download limit reached. Contact support.');
   }
 
-  db.prepare('UPDATE orders SET download_count = download_count + 1 WHERE id = ?').run(order.id);
-  db.close();
+  db.update('orders', order.id, { download_count: order.download_count + 1 });
 
   const path = require('path');
-  res.download(path.join(__dirname, '..', 'uploads', order.file_path), `${order.title}.pdf`);
+  res.download(path.join('/tmp', book.file_path), `${book.title}.pdf`);
 });
 
 module.exports = router;

@@ -4,3 +4,4 @@ db/*.db
 uploads/*
 !uploads/.gitkeep
 .DS_Store
+.vercel

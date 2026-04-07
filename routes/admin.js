@@ -7,7 +7,7 @@ const { getDb } = require('../db/setup');
 
 // File upload config
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'uploads')),
+  destination: (req, file, cb) => cb(null, path.join('/tmp')),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, crypto.randomBytes(8).toString('hex') + ext);
@@ -42,11 +42,10 @@ router.get('/logout', (req, res) => {
 // Dashboard
 router.get('/', requireAdmin, (req, res) => {
   const db = getDb();
-  const books = db.prepare('SELECT * FROM books ORDER BY created_at DESC').all();
-  const orderCount = db.prepare('SELECT COUNT(*) as count FROM orders WHERE status = ?').get('completed')?.count || 0;
-  const subscriberCount = db.prepare('SELECT COUNT(*) as count FROM subscribers').get()?.count || 0;
-  const revenue = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM orders WHERE status = ?').get('completed')?.total || 0;
-  db.close();
+  const books = db.all('books').sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const orderCount = db.count('orders', o => o.status === 'completed');
+  const subscriberCount = db.count('subscribers');
+  const revenue = db.sum('orders', 'amount', o => o.status === 'completed');
   res.render('admin/dashboard', { title: 'Admin Dashboard', books, orderCount, subscriberCount, revenue });
 });
 
@@ -58,8 +57,7 @@ router.get('/books/new', requireAdmin, (req, res) => {
 // Edit book form
 router.get('/books/:id/edit', requireAdmin, (req, res) => {
   const db = getDb();
-  const book = db.prepare('SELECT * FROM books WHERE id = ?').get(req.params.id);
-  db.close();
+  const book = db.get('books', b => b.id === parseInt(req.params.id));
   if (!book) return res.redirect('/admin');
   res.render('admin/book-form', { title: 'Edit Book', book });
 });
@@ -76,50 +74,49 @@ router.post('/books', requireAdmin, upload.fields([
   const file_path = req.files?.file?.[0]?.filename || null;
 
   if (book_id) {
-    // Update
-    let query = 'UPDATE books SET title=?, slug=?, description=?, long_description=?, price=?, category=?, featured=?, active=?';
-    const params = [title, slug, description, long_description, price, category, featured ? 1 : 0, active ? 1 : 0];
-    if (cover_image) { query += ', cover_image=?'; params.push(cover_image); }
-    if (file_path) { query += ', file_path=?'; params.push(file_path); }
-    query += ' WHERE id=?';
-    params.push(book_id);
-    db.prepare(query).run(...params);
+    const updates = {
+      title, slug, description, long_description,
+      price: parseFloat(price),
+      category,
+      featured: featured ? 1 : 0,
+      active: active ? 1 : 0
+    };
+    if (cover_image) updates.cover_image = cover_image;
+    if (file_path) updates.file_path = file_path;
+    db.update('books', parseInt(book_id), updates);
   } else {
-    // Insert
-    db.prepare(`INSERT INTO books (title, slug, description, long_description, price, cover_image, file_path, category, featured, active)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
-      title, slug, description, long_description, price, cover_image, file_path, category, featured ? 1 : 0, active ? 1 : 0
-    );
+    db.insert('books', {
+      title, slug, description, long_description,
+      price: parseFloat(price),
+      cover_image, file_path, category,
+      featured: featured ? 1 : 0,
+      active: active ? 1 : 0
+    });
   }
-  db.close();
   res.redirect('/admin');
 });
 
 // Delete book
 router.post('/books/:id/delete', requireAdmin, (req, res) => {
   const db = getDb();
-  db.prepare('DELETE FROM books WHERE id = ?').run(req.params.id);
-  db.close();
+  db.delete('books', parseInt(req.params.id));
   res.redirect('/admin');
 });
 
 // Orders list
 router.get('/orders', requireAdmin, (req, res) => {
   const db = getDb();
-  const orders = db.prepare(`
-    SELECT orders.*, books.title as book_title
-    FROM orders JOIN books ON orders.book_id = books.id
-    ORDER BY orders.created_at DESC
-  `).all();
-  db.close();
+  const orders = db.all('orders').sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(order => {
+    const book = db.get('books', b => b.id === order.book_id);
+    return { ...order, book_title: book?.title || 'Unknown' };
+  });
   res.render('admin/orders', { title: 'Orders', orders });
 });
 
 // Subscribers list
 router.get('/subscribers', requireAdmin, (req, res) => {
   const db = getDb();
-  const subscribers = db.prepare('SELECT * FROM subscribers ORDER BY created_at DESC').all();
-  db.close();
+  const subscribers = db.all('subscribers').sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   res.render('admin/subscribers', { title: 'Subscribers', subscribers });
 });
 
