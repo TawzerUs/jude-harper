@@ -1,19 +1,18 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+// Use JH_ prefixed vars to avoid Vercel integration override
+const SUPABASE_URL = process.env.JH_SUPABASE_URL || process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.JH_SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
   }
-);
+});
 
 function initDb() {
-  console.log('Supabase connected:', process.env.SUPABASE_URL ? 'yes' : 'NO URL');
-  console.log('Service key set:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'yes' : 'NO');
+  console.log('Supabase URL:', SUPABASE_URL);
 }
 
 module.exports = { supabase, initDb };
