@@ -7,7 +7,7 @@
       <!-- Cover -->
       <div class="aspect-[3/4] bg-brand-100 rounded-xl overflow-hidden">
         <% if (book.cover_image) { %>
-          <img src="/uploads/<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-cover">
+          <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-cover">
         <% } else { %>
           <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-200 to-brand-300">
             <span class="font-serif text-3xl text-white/80 text-center px-6"><%= book.title %></span>
