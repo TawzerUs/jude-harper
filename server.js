@@ -43,6 +43,11 @@ app.use((req, res) => {
   res.status(404).render('404', { title: 'Page Not Found' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Jude Harper Store running at http://localhost:${PORT}`);
-});
+// Start server (skip in Vercel serverless)
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`Jude Harper Store running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
