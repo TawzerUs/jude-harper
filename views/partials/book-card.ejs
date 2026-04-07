@@ -1,7 +1,7 @@
 <a href="/book/<%= book.slug %>" class="group block bg-surface-secondary rounded-bento overflow-hidden hover:shadow-lg transition-all duration-300">
   <div class="aspect-[3/4] bg-gray-100 overflow-hidden">
     <% if (book.cover_image) { %>
-      <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+      <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-contain bg-surface-secondary group-hover:scale-105 transition-transform duration-500">
     <% } else { %>
       <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
         <span class="font-serif text-2xl text-accent/60 text-center px-6"><%= book.title %></span>

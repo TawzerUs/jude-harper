@@ -6,7 +6,7 @@
     <!-- Book Info -->
     <div class="flex gap-6 mb-8">
       <% if (book.cover_image) { %>
-        <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-32 h-44 object-cover rounded-xl shadow-lg">
+        <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-32 h-44 object-contain bg-surface-secondary rounded-xl shadow-lg">
       <% } %>
       <div>
         <span class="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-pill">Audiobook</span>

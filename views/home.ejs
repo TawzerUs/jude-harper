@@ -16,7 +16,7 @@
       </div>
       <div class="w-full max-w-sm md:max-w-none md:w-[480px] shrink-0">
         <% if (featured.length > 0 && featured[0].cover_image) { %>
-          <img src="<%= featured[0].cover_image %>" alt="<%= featured[0].title %>" class="w-full aspect-[3/4] object-cover rounded-bento shadow-xl">
+          <img src="<%= featured[0].cover_image %>" alt="<%= featured[0].title %>" class="w-full aspect-[3/4] object-contain rounded-bento shadow-xl bg-surface-secondary">
         <% } else { %>
           <div class="w-full aspect-[3/4] bg-gradient-to-br from-orange-50 to-orange-100 rounded-bento flex items-center justify-center">
             <span class="font-serif text-3xl text-accent/50">Jude Harper</span>

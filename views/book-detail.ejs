@@ -28,7 +28,7 @@
     <div class="w-full md:w-[460px] shrink-0">
       <div class="aspect-[3/4] rounded-bento overflow-hidden bg-gray-100">
         <% if (book.cover_image) { %>
-          <img id="mainImage" src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-cover">
+          <img id="mainImage" src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-contain bg-surface-secondary">
         <% } else { %>
           <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
             <span class="font-serif text-3xl text-accent/60 text-center px-6"><%= book.title %></span>

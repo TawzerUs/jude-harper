@@ -23,7 +23,7 @@
           <!-- Cover -->
           <div class="w-48 shrink-0">
             <% if (book.cover_image) { %>
-              <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-cover">
+              <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-contain bg-surface-secondary">
             <% } else { %>
               <div class="w-full h-full bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
                 <svg class="w-12 h-12 text-accent/40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
