@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "jude-harper",
+      "runtimeExecutable": "/opt/homebrew/bin/node",
+      "runtimeArgs": ["server.js"],
+      "port": 3000,
+      "cwd": "/Users/adiltawzer/Documents/Tawzer AppLabs 2025/jude-harper"
+    }
+  ]
+}
