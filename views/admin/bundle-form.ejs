@@ -1,11 +1,6 @@
 <%- include('../partials/head') %>
-
-<nav class="bg-surface-inverse text-white">
-  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
-    <span class="font-serif text-xl font-bold">Jude Harper — Admin</span>
-    <a href="/admin/bundles" class="text-gray-400 hover:text-white transition text-sm">&larr; Back to Bundles</a>
-  </div>
-</nav>
+<% const page = 'bundles'; %>
+<%- include('partials/admin-nav') %>
 
 <main class="flex-1 px-6 md:px-12 py-8">
   <div class="max-w-3xl mx-auto">

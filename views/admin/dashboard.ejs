@@ -1,31 +1,17 @@
 <%- include('../partials/head') %>
-
-<!-- Admin Nav -->
-<nav class="bg-surface-inverse text-white">
-  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
-    <span class="font-serif text-xl font-bold">Jude Harper — Admin</span>
-    <div class="flex items-center gap-6 text-sm">
-      <a href="/admin" class="text-accent font-semibold">Dashboard</a>
-      <a href="/admin/orders" class="text-gray-400 hover:text-white transition">Orders</a>
-      <a href="/admin/subscribers" class="text-gray-400 hover:text-white transition">Subscribers</a>
-      <a href="/" class="text-gray-400 hover:text-white transition">View Site &rarr;</a>
-      <a href="/admin/logout" class="border border-gray-700 px-4 py-1.5 rounded-pill text-gray-400 hover:text-white hover:border-gray-500 transition">Logout</a>
-    </div>
-  </div>
-</nav>
+<% const page = 'dashboard'; %>
+<%- include('partials/admin-nav') %>
 
 <main class="flex-1 px-6 md:px-12 py-8">
   <div class="max-w-7xl mx-auto space-y-8">
-    <!-- Header -->
     <div class="flex items-center justify-between">
       <h1 class="font-serif text-3xl font-bold">Dashboard</h1>
       <a href="/admin/books/new" class="bg-accent text-white px-5 py-2.5 rounded-pill font-semibold text-sm hover:bg-orange-600 transition flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-        Add Book
+        Add Product
       </a>
     </div>
 
-    <!-- Stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
       <div class="bg-surface-secondary p-6 rounded-bento">
         <p class="text-sm text-fg-muted">Total Revenue</p>
@@ -40,14 +26,13 @@
         <p class="text-3xl font-bold mt-1"><%= subscriberCount %></p>
       </div>
       <div class="bg-surface-secondary p-6 rounded-bento">
-        <p class="text-sm text-fg-muted">Books</p>
+        <p class="text-sm text-fg-muted">Products</p>
         <p class="text-3xl font-bold mt-1 text-accent"><%= books.length %></p>
       </div>
     </div>
 
-    <!-- Books Table -->
     <div>
-      <h2 class="font-serif text-2xl font-bold mb-4">Books</h2>
+      <h2 class="font-serif text-2xl font-bold mb-4">Products</h2>
       <div class="rounded-bento border border-border-subtle overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-surface-secondary">
@@ -66,7 +51,8 @@
               <td class="px-5 py-3.5 font-medium"><%= book.title %></td>
               <td class="px-5 py-3.5">$<%= parseFloat(book.price).toFixed(2) %></td>
               <td class="px-5 py-3.5">
-                <% if (book.has_digital !== false) { %><span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-pill font-medium mr-1">Digital</span><% } %>
+                <% if (book.has_digital !== false) { %><span class="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-pill font-medium mr-1">Digital</span><% } %>
+                <% if (book.has_audiobook) { %><span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-pill font-medium mr-1">Audio</span><% } %>
                 <% if (book.has_paperback) { %><span class="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-pill font-medium">Paper</span><% } %>
               </td>
               <td class="px-5 py-3.5">
@@ -77,14 +63,14 @@
               <td class="px-5 py-3.5"><%= book.featured ? 'Yes' : '—' %></td>
               <td class="px-5 py-3.5 text-right">
                 <a href="/admin/books/<%= book.id %>/edit" class="text-accent font-semibold hover:text-orange-700 mr-3">Edit</a>
-                <form action="/admin/books/<%= book.id %>/delete" method="POST" class="inline" onsubmit="return confirm('Delete this book?')">
+                <form action="/admin/books/<%= book.id %>/delete" method="POST" class="inline" onsubmit="return confirm('Delete this product?')">
                   <button class="text-red-400 hover:text-red-600">Delete</button>
                 </form>
               </td>
             </tr>
             <% }) %>
             <% if (books.length === 0) { %>
-            <tr><td colspan="6" class="px-5 py-10 text-center text-fg-muted">No books yet. Add your first book!</td></tr>
+            <tr><td colspan="6" class="px-5 py-10 text-center text-fg-muted">No products yet. Add your first product!</td></tr>
             <% } %>
           </tbody>
         </table>

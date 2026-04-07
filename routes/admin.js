@@ -158,14 +158,14 @@ router.post('/books', requireAdmin, upload.fields([
       weight: b.weight || null,
       publisher: b.publisher || 'Independently published',
       publication_date: b.publication_date || null,
-      // Lulu fields
-      lulu_product_id: b.lulu_product_id || null,
-      lulu_binding: b.lulu_binding || 'Paperback Perfect Bound',
-      lulu_paper_type: b.lulu_paper_type || '60# White',
-      lulu_trim_size: b.lulu_trim_size || '6 x 9',
-      lulu_interior_color: b.lulu_interior_color || 'Standard Black & White',
-      lulu_cover_finish: b.lulu_cover_finish || 'Matte',
-      lulu_print_cost: b.lulu_print_cost ? parseFloat(b.lulu_print_cost) : null,
+      // Lulu fields (only relevant for paperback)
+      lulu_product_id: b.has_paperback ? (b.lulu_product_id || null) : null,
+      lulu_binding: b.has_paperback ? (b.lulu_binding || 'Paperback Perfect Bound') : null,
+      lulu_paper_type: b.has_paperback ? (b.lulu_paper_type || '60# White') : null,
+      lulu_trim_size: b.has_paperback ? (b.lulu_trim_size || '6 x 9') : null,
+      lulu_interior_color: b.has_paperback ? (b.lulu_interior_color || 'Standard Black & White') : null,
+      lulu_cover_finish: b.has_paperback ? (b.lulu_cover_finish || 'Matte') : null,
+      lulu_print_cost: b.has_paperback && b.lulu_print_cost ? parseFloat(b.lulu_print_cost) : null,
     };
 
     // Upload cover image

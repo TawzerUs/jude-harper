@@ -1,16 +1,6 @@
 <%- include('../partials/head') %>
-
-<nav class="bg-surface-inverse text-white">
-  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
-    <span class="font-serif text-xl font-bold">Jude Harper — Admin</span>
-    <div class="flex items-center gap-6 text-sm">
-      <a href="/admin" class="text-gray-400 hover:text-white transition">Dashboard</a>
-      <a href="/admin/orders" class="text-gray-400 hover:text-white transition">Orders</a>
-      <a href="/admin/fulfillment" class="text-accent font-semibold">Fulfillment</a>
-      <a href="/admin/bundles" class="text-gray-400 hover:text-white transition">Bundles</a>
-    </div>
-  </div>
-</nav>
+<% const page = 'fulfillment'; %>
+<%- include('partials/admin-nav') %>
 
 <main class="flex-1 px-6 md:px-12 py-8">
   <div class="max-w-7xl mx-auto space-y-6">
@@ -32,7 +22,6 @@
             <th class="text-left px-5 py-3 font-semibold text-fg-muted">Order</th>
             <th class="text-left px-5 py-3 font-semibold text-fg-muted">Format</th>
             <th class="text-left px-5 py-3 font-semibold text-fg-muted">Status</th>
-            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Lulu Job</th>
             <th class="text-left px-5 py-3 font-semibold text-fg-muted">Tracking</th>
             <th class="text-left px-5 py-3 font-semibold text-fg-muted">Actions</th>
           </tr>
@@ -61,11 +50,11 @@
                 <% } else { %>bg-gray-100 text-fg-muted<% } %>">
                 <%= order.fulfillment_status || 'pending' %>
               </span>
+              <% if (order.lulu_print_job_id) { %><span class="text-xs text-fg-muted ml-1">Lulu: <%= order.lulu_print_job_id %></span><% } %>
             </td>
-            <td class="px-5 py-3.5 text-sm"><%= order.lulu_print_job_id || '—' %></td>
             <td class="px-5 py-3.5 text-sm"><%= order.tracking_number ? (order.tracking_carrier || '') + ' ' + order.tracking_number : '—' %></td>
             <td class="px-5 py-3.5">
-              <% if (order.format === 'paperback' && order.fulfillment_status !== 'delivered') { %>
+              <% if (order.format !== 'digital' && order.fulfillment_status !== 'delivered') { %>
               <form action="/admin/fulfillment/<%= order.id %>/update" method="POST" class="flex gap-2 items-center">
                 <select name="fulfillment_status" class="text-xs border border-border-subtle rounded-lg px-2 py-1">
                   <option value="pending" <%= order.fulfillment_status === 'pending' ? 'selected' : '' %>>Pending</option>
@@ -77,13 +66,13 @@
                 <button type="submit" class="text-accent text-xs font-semibold">Save</button>
               </form>
               <% } else { %>
-                <span class="text-xs text-fg-muted">—</span>
+                <span class="text-xs text-fg-muted"><%= order.format === 'digital' ? 'Auto-delivered' : '—' %></span>
               <% } %>
             </td>
           </tr>
           <% }) %>
           <% if (orders.length === 0) { %>
-          <tr><td colspan="7" class="px-5 py-10 text-center text-fg-muted">No orders to fulfill.</td></tr>
+          <tr><td colspan="6" class="px-5 py-10 text-center text-fg-muted">No orders to fulfill.</td></tr>
           <% } %>
         </tbody>
       </table>

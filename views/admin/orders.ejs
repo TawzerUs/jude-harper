@@ -1,15 +1,6 @@
 <%- include('../partials/head') %>
-
-<nav class="bg-surface-inverse text-white">
-  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
-    <span class="font-serif text-xl font-bold">Jude Harper — Admin</span>
-    <div class="flex items-center gap-6 text-sm">
-      <a href="/admin" class="text-gray-400 hover:text-white transition">Dashboard</a>
-      <a href="/admin/orders" class="text-accent font-semibold">Orders</a>
-      <a href="/admin/subscribers" class="text-gray-400 hover:text-white transition">Subscribers</a>
-    </div>
-  </div>
-</nav>
+<% const page = 'orders'; %>
+<%- include('partials/admin-nav') %>
 
 <main class="flex-1 px-6 md:px-12 py-8">
   <div class="max-w-7xl mx-auto space-y-6">
@@ -23,7 +14,7 @@
         <thead class="bg-surface-secondary">
           <tr>
             <th class="text-left px-5 py-3 font-semibold text-fg-muted">Date</th>
-            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Book</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Product</th>
             <th class="text-left px-5 py-3 font-semibold text-fg-muted">Email</th>
             <th class="text-left px-5 py-3 font-semibold text-fg-muted">Format</th>
             <th class="text-left px-5 py-3 font-semibold text-fg-muted">Amount</th>
@@ -38,7 +29,10 @@
             <td class="px-5 py-3.5 font-medium"><%= order.book_title %></td>
             <td class="px-5 py-3.5 text-fg-secondary"><%= order.email %></td>
             <td class="px-5 py-3.5">
-              <span class="text-xs px-2 py-0.5 rounded-pill font-medium <%= (order.format === 'paperback') ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600' %>">
+              <span class="text-xs px-2 py-0.5 rounded-pill font-medium
+                <% if (order.format === 'paperback') { %>bg-purple-50 text-purple-600
+                <% } else if (order.format === 'audiobook') { %>bg-blue-50 text-blue-600
+                <% } else { %>bg-green-50 text-green-600<% } %>">
                 <%= order.format || 'digital' %>
               </span>
             </td>
@@ -47,9 +41,6 @@
               <span class="px-3 py-1 rounded-pill text-xs font-semibold <%= order.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600' %>">
                 <%= order.status %>
               </span>
-              <% if (order.lulu_print_job_id) { %>
-                <span class="text-xs text-fg-muted ml-1">Lulu: <%= order.lulu_print_job_id %></span>
-              <% } %>
             </td>
             <td class="px-5 py-3.5 text-fg-secondary"><%= order.download_count %></td>
           </tr>

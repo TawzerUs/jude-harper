@@ -20,7 +20,15 @@ router.get('/book/:slug', async (req, res) => {
   const { data: book } = await supabase.from('jh_books').select('*').eq('slug', req.params.slug).eq('active', true).single();
   if (!book) return res.status(404).render('404', { title: 'Book Not Found' });
   const { data: gallery } = await supabase.from('jh_book_gallery').select('*').eq('book_id', book.id).order('sort_order', { ascending: true });
-  res.render('book-detail', { title: `${book.title} - Jude Harper`, book, gallery: gallery || [] });
+
+  // Get sample audio URL if exists
+  let sampleUrl = null;
+  if (book.audiobook_sample) {
+    const { data: sData } = supabase.storage.from('jh-uploads').getPublicUrl(book.audiobook_sample);
+    sampleUrl = sData?.publicUrl;
+  }
+
+  res.render('book-detail', { title: `${book.title} - Jude Harper`, book, gallery: gallery || [], sampleUrl });
 });
 
 // Audiobooks page
