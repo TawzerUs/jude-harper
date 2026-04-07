@@ -2,12 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { supabase } = require('../db/setup');
 
-// Debug - remove later
-router.get('/debug-db', async (req, res) => {
-  const { data, error } = await supabase.from('jh_books').select('*');
-  res.json({ url: process.env.SUPABASE_URL, hasKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY, data, error });
-});
-
 // Homepage
 router.get('/', async (req, res) => {
   const { data: featured } = await supabase.from('jh_books').select('*').eq('active', true).eq('featured', true).order('created_at', { ascending: false });
