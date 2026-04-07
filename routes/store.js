@@ -52,6 +52,17 @@ router.get('/about', (req, res) => {
   res.render('about', { title: 'About - Jude Harper' });
 });
 
+// Legal pages
+router.get('/privacy', (req, res) => {
+  res.render('privacy', { title: 'Privacy Policy - Jude Harper' });
+});
+router.get('/terms', (req, res) => {
+  res.render('terms', { title: 'Terms of Service - Jude Harper' });
+});
+router.get('/shipping', (req, res) => {
+  res.render('shipping', { title: 'Shipping & Delivery - Jude Harper' });
+});
+
 // Newsletter signup
 router.post('/subscribe', async (req, res) => {
   const { email, name } = req.body;

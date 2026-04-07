@@ -3,14 +3,17 @@ const router = express.Router();
 const crypto = require('crypto');
 const { supabase } = require('../db/setup');
 
+// Resolve Stripe key from various possible env var names
+const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_API_KEY || process.env.STRIPE_KEY;
+
 // Stripe checkout session
 router.post('/checkout', async (req, res) => {
   const { bookId, format = 'digital' } = req.body;
-  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_your_key_here') {
+  if (!STRIPE_KEY || STRIPE_KEY === 'sk_test_your_key_here') {
     return res.status(400).json({ error: 'Stripe not configured yet' });
   }
 
-  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  const stripe = require('stripe')(STRIPE_KEY);
   const { data: book } = await supabase.from('jh_books').select('*').eq('id', bookId).eq('active', true).single();
   if (!book) return res.status(404).json({ error: 'Book not found' });
 
@@ -51,12 +54,12 @@ router.post('/checkout', async (req, res) => {
 // Success callback
 router.get('/success', async (req, res) => {
   const { session_id } = req.query;
-  if (!session_id || !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_your_key_here') {
+  if (!session_id || !STRIPE_KEY) {
     return res.redirect('/?error=payment');
   }
 
   try {
-    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const stripe = require('stripe')(STRIPE_KEY);
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
     if (session.payment_status === 'paid') {
@@ -214,11 +217,11 @@ router.get('/order-confirmed/:token', async (req, res) => {
 // Bundle checkout
 router.post('/checkout-bundle', async (req, res) => {
   const { bundleId } = req.body;
-  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_your_key_here') {
+  if (!STRIPE_KEY) {
     return res.status(400).json({ error: 'Stripe not configured yet' });
   }
 
-  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  const stripe = require('stripe')(STRIPE_KEY);
   const { data: bundle } = await supabase.from('jh_bundles').select('*').eq('id', bundleId).eq('active', true).single();
   if (!bundle) return res.status(404).json({ error: 'Bundle not found' });
 
@@ -258,7 +261,7 @@ router.get('/bundle-success', async (req, res) => {
   if (!session_id) return res.redirect('/?error=payment');
 
   try {
-    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const stripe = require('stripe')(STRIPE_KEY);
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
     if (session.payment_status === 'paid') {

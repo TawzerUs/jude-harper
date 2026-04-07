@@ -1,0 +1,52 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<main class="flex-1 px-6 md:px-12 py-12 md:py-16">
+  <div class="max-w-3xl mx-auto prose">
+    <h1 class="font-serif text-4xl font-bold mb-8">Terms of Service</h1>
+    <p class="text-fg-muted text-sm mb-8">Last updated: <%= new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'}) %></p>
+
+    <h2 class="font-serif text-2xl font-bold mt-8 mb-4">1. Overview</h2>
+    <p class="text-fg-secondary leading-relaxed mb-4">These Terms of Service govern your use of judeharper.com, operated by <strong>Tawzer LLC</strong>. By purchasing products or using this website, you agree to these terms.</p>
+
+    <h2 class="font-serif text-2xl font-bold mt-8 mb-4">2. Products</h2>
+    <p class="text-fg-secondary leading-relaxed mb-4">We sell digital products (PDF ebooks, audiobooks) and physical products (paperback books printed on demand). Product descriptions, prices, and availability are subject to change without notice.</p>
+
+    <h2 class="font-serif text-2xl font-bold mt-8 mb-4">3. Digital Products</h2>
+    <ul class="text-fg-secondary mb-4 list-disc pl-6 space-y-1">
+      <li>Digital products are delivered instantly after payment confirmation</li>
+      <li>Each purchase includes up to 5 downloads</li>
+      <li>Digital products are for personal use only — redistribution is prohibited</li>
+      <li>Due to the digital nature, refunds are not available once downloaded</li>
+    </ul>
+
+    <h2 class="font-serif text-2xl font-bold mt-8 mb-4">4. Physical Products</h2>
+    <ul class="text-fg-secondary mb-4 list-disc pl-6 space-y-1">
+      <li>Physical books are printed on demand by Lulu and shipped directly to you</li>
+      <li>Estimated delivery: 5-10 business days (may vary by location)</li>
+      <li>Shipping costs are calculated at checkout</li>
+      <li>Tracking information is provided once shipped</li>
+    </ul>
+
+    <h2 class="font-serif text-2xl font-bold mt-8 mb-4">5. Pricing & Payment</h2>
+    <p class="text-fg-secondary leading-relaxed mb-4">All prices are in USD. Payment is processed securely through Stripe. We accept major credit cards and other payment methods supported by Stripe. Invoices are issued by Tawzer LLC.</p>
+
+    <h2 class="font-serif text-2xl font-bold mt-8 mb-4">6. Refund Policy</h2>
+    <ul class="text-fg-secondary mb-4 list-disc pl-6 space-y-1">
+      <li><strong>Digital products:</strong> No refunds after download. If you experience issues, contact us</li>
+      <li><strong>Physical products:</strong> Refunds available for damaged or defective items within 30 days of delivery</li>
+      <li><strong>Bundles:</strong> Partial refunds not available — bundle must be refunded as a whole</li>
+    </ul>
+
+    <h2 class="font-serif text-2xl font-bold mt-8 mb-4">7. Intellectual Property</h2>
+    <p class="text-fg-secondary leading-relaxed mb-4">All content, including books, audiobooks, cover art, and website design are owned by Tawzer LLC. Unauthorized reproduction, distribution, or modification is prohibited.</p>
+
+    <h2 class="font-serif text-2xl font-bold mt-8 mb-4">8. Limitation of Liability</h2>
+    <p class="text-fg-secondary leading-relaxed mb-4">Tawzer LLC is not liable for indirect, incidental, or consequential damages arising from your use of our products or website.</p>
+
+    <h2 class="font-serif text-2xl font-bold mt-8 mb-4">9. Contact</h2>
+    <p class="text-fg-secondary leading-relaxed mb-4">Tawzer LLC<br>Email: hello@judeharper.com</p>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
