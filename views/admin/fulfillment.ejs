@@ -1,0 +1,94 @@
+<%- include('../partials/head') %>
+
+<nav class="bg-surface-inverse text-white">
+  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
+    <span class="font-serif text-xl font-bold">Jude Harper — Admin</span>
+    <div class="flex items-center gap-6 text-sm">
+      <a href="/admin" class="text-gray-400 hover:text-white transition">Dashboard</a>
+      <a href="/admin/orders" class="text-gray-400 hover:text-white transition">Orders</a>
+      <a href="/admin/fulfillment" class="text-accent font-semibold">Fulfillment</a>
+      <a href="/admin/bundles" class="text-gray-400 hover:text-white transition">Bundles</a>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-1 px-6 md:px-12 py-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="font-serif text-3xl font-bold">Fulfillment & Tracking</h1>
+      <div class="flex gap-2">
+        <a href="/admin/fulfillment" class="px-4 py-2 rounded-pill text-sm font-semibold <%= !filter || filter === 'all' ? 'bg-accent text-white' : 'bg-surface-secondary text-fg-secondary' %>">All</a>
+        <a href="/admin/fulfillment?filter=pending" class="px-4 py-2 rounded-pill text-sm font-medium <%= filter === 'pending' ? 'bg-accent text-white' : 'bg-surface-secondary text-fg-secondary' %>">Pending</a>
+        <a href="/admin/fulfillment?filter=shipped" class="px-4 py-2 rounded-pill text-sm font-medium <%= filter === 'shipped' ? 'bg-accent text-white' : 'bg-surface-secondary text-fg-secondary' %>">Shipped</a>
+        <a href="/admin/fulfillment?filter=delivered" class="px-4 py-2 rounded-pill text-sm font-medium <%= filter === 'delivered' ? 'bg-accent text-white' : 'bg-surface-secondary text-fg-secondary' %>">Delivered</a>
+      </div>
+    </div>
+
+    <div class="rounded-bento border border-border-subtle overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-surface-secondary">
+          <tr>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Date</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Order</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Format</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Status</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Lulu Job</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Tracking</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% orders.forEach(order => { %>
+          <tr class="border-t border-border-subtle">
+            <td class="px-5 py-3.5 text-fg-secondary"><%= new Date(order.created_at).toLocaleDateString() %></td>
+            <td class="px-5 py-3.5">
+              <p class="font-medium"><%= order.book_title %></p>
+              <p class="text-xs text-fg-muted"><%= order.email %></p>
+            </td>
+            <td class="px-5 py-3.5">
+              <span class="text-xs px-2 py-0.5 rounded-pill font-medium
+                <% if (order.format === 'paperback') { %>bg-purple-50 text-purple-600
+                <% } else if (order.format === 'audiobook') { %>bg-blue-50 text-blue-600
+                <% } else { %>bg-green-50 text-green-600<% } %>">
+                <%= order.format || 'digital' %>
+              </span>
+            </td>
+            <td class="px-5 py-3.5">
+              <span class="px-3 py-1 rounded-pill text-xs font-semibold
+                <% if (order.fulfillment_status === 'delivered') { %>bg-green-50 text-green-600
+                <% } else if (order.fulfillment_status === 'shipped') { %>bg-blue-50 text-blue-600
+                <% } else if (order.fulfillment_status === 'printing') { %>bg-yellow-50 text-yellow-600
+                <% } else { %>bg-gray-100 text-fg-muted<% } %>">
+                <%= order.fulfillment_status || 'pending' %>
+              </span>
+            </td>
+            <td class="px-5 py-3.5 text-sm"><%= order.lulu_print_job_id || '—' %></td>
+            <td class="px-5 py-3.5 text-sm"><%= order.tracking_number ? (order.tracking_carrier || '') + ' ' + order.tracking_number : '—' %></td>
+            <td class="px-5 py-3.5">
+              <% if (order.format === 'paperback' && order.fulfillment_status !== 'delivered') { %>
+              <form action="/admin/fulfillment/<%= order.id %>/update" method="POST" class="flex gap-2 items-center">
+                <select name="fulfillment_status" class="text-xs border border-border-subtle rounded-lg px-2 py-1">
+                  <option value="pending" <%= order.fulfillment_status === 'pending' ? 'selected' : '' %>>Pending</option>
+                  <option value="printing" <%= order.fulfillment_status === 'printing' ? 'selected' : '' %>>Printing</option>
+                  <option value="shipped" <%= order.fulfillment_status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                  <option value="delivered" <%= order.fulfillment_status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                </select>
+                <input type="text" name="tracking_number" value="<%= order.tracking_number || '' %>" placeholder="Tracking #" class="text-xs border border-border-subtle rounded-lg px-2 py-1 w-28">
+                <button type="submit" class="text-accent text-xs font-semibold">Save</button>
+              </form>
+              <% } else { %>
+                <span class="text-xs text-fg-muted">—</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (orders.length === 0) { %>
+          <tr><td colspan="7" class="px-5 py-10 text-center text-fg-muted">No orders to fulfill.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

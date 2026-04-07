@@ -14,7 +14,9 @@ router.post('/checkout', async (req, res) => {
   const { data: book } = await supabase.from('jh_books').select('*').eq('id', bookId).eq('active', true).single();
   if (!book) return res.status(404).json({ error: 'Book not found' });
 
-  const price = format === 'paperback' && book.paperback_price ? book.paperback_price : book.price;
+  let price = book.price;
+  if (format === 'paperback' && book.paperback_price) price = book.paperback_price;
+  if (format === 'audiobook' && book.audiobook_price) price = book.audiobook_price;
 
   const sessionConfig = {
     payment_method_types: ['card'],
@@ -22,7 +24,7 @@ router.post('/checkout', async (req, res) => {
       price_data: {
         currency: 'usd',
         product_data: {
-          name: `${book.title} (${format === 'paperback' ? 'Paperback' : 'Digital PDF'})`,
+          name: `${book.title} (${format === 'paperback' ? 'Paperback' : format === 'audiobook' ? 'Audiobook' : 'Digital PDF'})`,
           description: book.description || undefined,
         },
         unit_amount: Math.round(parseFloat(price) * 100),
@@ -89,10 +91,9 @@ router.get('/success', async (req, res) => {
         }
       }
 
-      if (format === 'digital') {
+      if (format === 'digital' || format === 'audiobook') {
         return res.redirect(`/api/download/${downloadToken}`);
       } else {
-        // For paperback, show a thank you page
         return res.redirect(`/api/order-confirmed/${downloadToken}`);
       }
     }
@@ -166,7 +167,8 @@ function buildPodPackageId(book) {
 router.get('/download/:token', async (req, res) => {
   const { data: order } = await supabase.from('jh_orders').select('*, jh_books(*)').eq('download_token', req.params.token).eq('status', 'completed').single();
 
-  if (!order || !order.jh_books?.file_path) {
+  const filePath = order.format === 'audiobook' ? order.jh_books?.audiobook_file : order.jh_books?.file_path;
+  if (!order || !filePath) {
     return res.status(404).render('404', { title: 'Download Not Found' });
   }
 
@@ -176,12 +178,14 @@ router.get('/download/:token', async (req, res) => {
 
   await supabase.from('jh_orders').update({ download_count: order.download_count + 1 }).eq('id', order.id);
 
-  const { data, error } = await supabase.storage.from('jh-uploads').download(order.jh_books.file_path);
+  const { data, error } = await supabase.storage.from('jh-uploads').download(filePath);
   if (error || !data) return res.status(404).render('404', { title: 'File Not Found' });
 
   const buffer = Buffer.from(await data.arrayBuffer());
-  res.set('Content-Disposition', `attachment; filename="${order.jh_books.title}.pdf"`);
-  res.set('Content-Type', 'application/pdf');
+  const ext = order.format === 'audiobook' ? 'mp3' : 'pdf';
+  const contentType = order.format === 'audiobook' ? 'audio/mpeg' : 'application/pdf';
+  res.set('Content-Disposition', `attachment; filename="${order.jh_books.title}.${ext}"`);
+  res.set('Content-Type', contentType);
   res.send(buffer);
 });
 
@@ -205,6 +209,92 @@ router.get('/order-confirmed/:token', async (req, res) => {
       <a href="/" class="inline-block bg-[#FF5C00] text-white px-8 py-3 rounded-full font-semibold hover:bg-orange-600 transition">Back to Store</a>
     </div></body></html>
   `);
+});
+
+// Bundle checkout
+router.post('/checkout-bundle', async (req, res) => {
+  const { bundleId } = req.body;
+  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_your_key_here') {
+    return res.status(400).json({ error: 'Stripe not configured yet' });
+  }
+
+  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  const { data: bundle } = await supabase.from('jh_bundles').select('*').eq('id', bundleId).eq('active', true).single();
+  if (!bundle) return res.status(404).json({ error: 'Bundle not found' });
+
+  const { data: items } = await supabase.from('jh_bundle_items').select('*, jh_books(title)').eq('bundle_id', bundleId);
+  const itemNames = (items || []).map(i => `${i.jh_books?.title} (${i.format})`).join(', ');
+  const hasPaperback = (items || []).some(i => i.format === 'paperback');
+
+  const sessionConfig = {
+    payment_method_types: ['card'],
+    line_items: [{
+      price_data: {
+        currency: 'usd',
+        product_data: { name: bundle.title, description: itemNames },
+        unit_amount: Math.round(parseFloat(bundle.price) * 100),
+      },
+      quantity: 1,
+    }],
+    mode: 'payment',
+    success_url: `${process.env.SITE_URL}/api/bundle-success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.SITE_URL}/bundles`,
+    metadata: { bundle_id: bundleId.toString() },
+  };
+
+  if (hasPaperback) {
+    sessionConfig.shipping_address_collection = {
+      allowed_countries: ['US', 'CA', 'GB', 'FR', 'DE', 'AU', 'NZ', 'IE', 'NL', 'BE', 'ES', 'IT', 'PT', 'AT', 'CH', 'SE', 'NO', 'DK', 'FI']
+    };
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionConfig);
+  res.json({ url: session.url });
+});
+
+// Bundle success
+router.get('/bundle-success', async (req, res) => {
+  const { session_id } = req.query;
+  if (!session_id) return res.redirect('/?error=payment');
+
+  try {
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+
+    if (session.payment_status === 'paid') {
+      const bundleId = parseInt(session.metadata.bundle_id);
+      const { data: items } = await supabase.from('jh_bundle_items').select('*').eq('bundle_id', bundleId);
+
+      // Create an order for each item in the bundle
+      for (const item of (items || [])) {
+        const downloadToken = crypto.randomBytes(32).toString('hex');
+        const orderData = {
+          book_id: item.book_id,
+          bundle_id: bundleId,
+          email: session.customer_details.email,
+          stripe_session_id: session.id,
+          stripe_payment_id: session.payment_intent,
+          amount: session.amount_total / 100 / (items?.length || 1),
+          status: 'completed',
+          download_token: downloadToken,
+          download_count: 0,
+          format: item.format,
+        };
+        if (item.format === 'paperback' && session.shipping_details) {
+          orderData.shipping_address = session.shipping_details;
+        }
+        const { data: order } = await supabase.from('jh_orders').insert(orderData).select().single();
+        if (item.format === 'paperback' && order) {
+          try { await createLuluPrintJob(order); } catch (e) { console.error('Lulu error:', e); }
+        }
+      }
+
+      return res.redirect('/track?email=' + encodeURIComponent(session.customer_details.email));
+    }
+  } catch (err) {
+    console.error('Bundle success error:', err);
+  }
+  res.redirect('/?error=payment');
 });
 
 module.exports = router;

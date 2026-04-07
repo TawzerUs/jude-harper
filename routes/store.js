@@ -19,10 +19,32 @@ router.get('/books', async (req, res) => {
 router.get('/book/:slug', async (req, res) => {
   const { data: book } = await supabase.from('jh_books').select('*').eq('slug', req.params.slug).eq('active', true).single();
   if (!book) return res.status(404).render('404', { title: 'Book Not Found' });
-
   const { data: gallery } = await supabase.from('jh_book_gallery').select('*').eq('book_id', book.id).order('sort_order', { ascending: true });
-
   res.render('book-detail', { title: `${book.title} - Jude Harper`, book, gallery: gallery || [] });
+});
+
+// Bundles page
+router.get('/bundles', async (req, res) => {
+  const { data: bundles } = await supabase.from('jh_bundles').select('*').eq('active', true).order('created_at', { ascending: false });
+
+  // Load items for each bundle
+  for (const bundle of (bundles || [])) {
+    const { data: items } = await supabase.from('jh_bundle_items').select('*, jh_books(title, cover_image)').eq('bundle_id', bundle.id).order('sort_order', { ascending: true });
+    bundle.items = (items || []).map(i => ({ ...i, book_title: i.jh_books?.title, cover_image: i.jh_books?.cover_image }));
+  }
+
+  res.render('bundles', { title: 'Bundles & Offers - Jude Harper', bundles: bundles || [] });
+});
+
+// Order tracking
+router.get('/track', async (req, res) => {
+  const email = req.query.email;
+  let orders = [];
+  if (email) {
+    const { data } = await supabase.from('jh_orders').select('*, jh_books(title, cover_image)').eq('email', email).order('created_at', { ascending: false });
+    orders = data || [];
+  }
+  res.render('track', { title: 'Track Order - Jude Harper', orders, email });
 });
 
 // About page

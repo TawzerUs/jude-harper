@@ -1,0 +1,69 @@
+<%- include('../partials/head') %>
+
+<nav class="bg-surface-inverse text-white">
+  <div class="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between">
+    <span class="font-serif text-xl font-bold">Jude Harper — Admin</span>
+    <div class="flex items-center gap-6 text-sm">
+      <a href="/admin" class="text-gray-400 hover:text-white transition">Dashboard</a>
+      <a href="/admin/fulfillment" class="text-gray-400 hover:text-white transition">Fulfillment</a>
+      <a href="/admin/bundles" class="text-accent font-semibold">Bundles</a>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-1 px-6 md:px-12 py-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="font-serif text-3xl font-bold">Bundles & Offers</h1>
+      <a href="/admin/bundles/new" class="bg-accent text-white px-5 py-2.5 rounded-pill font-semibold text-sm hover:bg-orange-600 transition flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Create Bundle
+      </a>
+    </div>
+
+    <div class="rounded-bento border border-border-subtle overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-surface-secondary">
+          <tr>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Bundle Name</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Products</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Price</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Discount</th>
+            <th class="text-left px-5 py-3 font-semibold text-fg-muted">Status</th>
+            <th class="text-right px-5 py-3 font-semibold text-fg-muted">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% bundles.forEach(bundle => { %>
+          <tr class="border-t border-border-subtle">
+            <td class="px-5 py-3.5 font-medium"><%= bundle.title %></td>
+            <td class="px-5 py-3.5 text-fg-secondary"><%= bundle.item_count || 0 %> items</td>
+            <td class="px-5 py-3.5 font-semibold">$<%= parseFloat(bundle.price).toFixed(2) %></td>
+            <td class="px-5 py-3.5">
+              <% if (bundle.discount_percent) { %>
+                <span class="px-3 py-1 rounded-pill text-xs font-semibold bg-yellow-50 text-yellow-700"><%= bundle.discount_percent %>% off</span>
+              <% } else { %>—<% } %>
+            </td>
+            <td class="px-5 py-3.5">
+              <span class="px-3 py-1 rounded-pill text-xs font-semibold <%= bundle.active ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-fg-muted' %>">
+                <%= bundle.active ? 'Active' : 'Draft' %>
+              </span>
+            </td>
+            <td class="px-5 py-3.5 text-right">
+              <a href="/admin/bundles/<%= bundle.id %>/edit" class="text-accent font-semibold mr-3">Edit</a>
+              <form action="/admin/bundles/<%= bundle.id %>/delete" method="POST" class="inline" onsubmit="return confirm('Delete this bundle?')">
+                <button class="text-red-400 hover:text-red-600">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (bundles.length === 0) { %>
+          <tr><td colspan="6" class="px-5 py-10 text-center text-fg-muted">No bundles yet. Create your first bundle!</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

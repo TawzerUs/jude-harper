@@ -61,10 +61,13 @@
       <% } %>
 
       <!-- Format Toggle -->
-      <% if (book.has_digital || book.has_paperback) { %>
+      <% if (book.has_digital || book.has_paperback || book.has_audiobook) { %>
       <div class="flex rounded-xl border border-border-subtle overflow-hidden">
         <% if (book.has_digital !== false) { %>
         <button id="btnDigital" onclick="selectFormat('digital')" class="flex-1 py-3 text-sm font-semibold text-center bg-accent text-white transition">Digital (PDF)</button>
+        <% } %>
+        <% if (book.has_audiobook) { %>
+        <button id="btnAudiobook" onclick="selectFormat('audiobook')" class="flex-1 py-3 text-sm font-medium text-center bg-surface-secondary text-fg-secondary transition">Audiobook</button>
         <% } %>
         <% if (book.has_paperback) { %>
         <button id="btnPaperback" onclick="selectFormat('paperback')" class="flex-1 py-3 text-sm font-medium text-center bg-surface-secondary text-fg-secondary transition">Paperback</button>
@@ -76,6 +79,10 @@
       <div id="digitalInfo" class="flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl">
         <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         <span class="text-sm text-fg-secondary">Instant download after purchase — read on any device</span>
+      </div>
+      <div id="audiobookInfo" class="hidden flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl">
+        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+        <span class="text-sm text-fg-secondary">Stream or download MP3 — listen on any device</span>
       </div>
       <div id="paperbackInfo" class="hidden flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl">
         <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h2a2 2 0 012 2v6a2 2 0 01-2 2H6"/><path d="M2 16h16"/></svg>
@@ -137,31 +144,29 @@ function setMainImage(url) {
 }
 
 let selectedFormat = 'digital';
-const digitalPrice = <%= parseFloat(book.price).toFixed(2) %>;
-const paperbackPrice = <%= book.paperback_price ? parseFloat(book.paperback_price).toFixed(2) : parseFloat(book.price).toFixed(2) %>;
+const prices = {
+  digital: <%= parseFloat(book.price).toFixed(2) %>,
+  audiobook: <%= book.audiobook_price ? parseFloat(book.audiobook_price).toFixed(2) : parseFloat(book.price).toFixed(2) %>,
+  paperback: <%= book.paperback_price ? parseFloat(book.paperback_price).toFixed(2) : parseFloat(book.price).toFixed(2) %>
+};
+const labels = { digital: 'Digital Download (PDF)', audiobook: 'Audiobook (MP3)', paperback: 'Paperback — Ships in 5-10 days' };
+const active = 'flex-1 py-3 text-sm font-semibold text-center bg-accent text-white transition';
+const inactive = 'flex-1 py-3 text-sm font-medium text-center bg-surface-secondary text-fg-secondary transition';
 
 function selectFormat(fmt) {
   selectedFormat = fmt;
-  const btnD = document.getElementById('btnDigital');
-  const btnP = document.getElementById('btnPaperback');
-  const dInfo = document.getElementById('digitalInfo');
-  const pInfo = document.getElementById('paperbackInfo');
-  const price = fmt === 'digital' ? digitalPrice : paperbackPrice;
-
-  if (btnD && btnP) {
-    if (fmt === 'digital') {
-      btnD.className = 'flex-1 py-3 text-sm font-semibold text-center bg-accent text-white transition';
-      btnP.className = 'flex-1 py-3 text-sm font-medium text-center bg-surface-secondary text-fg-secondary transition';
-    } else {
-      btnP.className = 'flex-1 py-3 text-sm font-semibold text-center bg-accent text-white transition';
-      btnD.className = 'flex-1 py-3 text-sm font-medium text-center bg-surface-secondary text-fg-secondary transition';
-    }
-  }
-  if (dInfo) dInfo.className = fmt === 'digital' ? 'flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl' : 'hidden';
-  if (pInfo) pInfo.className = fmt === 'paperback' ? 'flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl' : 'hidden';
+  ['Digital', 'Audiobook', 'Paperback'].forEach(f => {
+    const btn = document.getElementById('btn' + f);
+    if (btn) btn.className = fmt === f.toLowerCase() ? active : inactive;
+  });
+  ['digitalInfo', 'audiobookInfo', 'paperbackInfo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = id.startsWith(fmt) ? 'flex items-center gap-3 bg-orange-50 px-5 py-3.5 rounded-xl' : 'hidden';
+  });
+  const price = prices[fmt];
   document.getElementById('priceDisplay').textContent = '$' + price.toFixed(2);
   document.getElementById('ctaPrice').textContent = price.toFixed(2);
-  document.getElementById('formatLabel').textContent = fmt === 'digital' ? 'Digital Download (PDF)' : 'Paperback — Ships in 5-10 days';
+  document.getElementById('formatLabel').textContent = labels[fmt];
 }
 
 async function buyBook(bookId) {

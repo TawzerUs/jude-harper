@@ -1,0 +1,102 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<main class="flex-1 px-6 md:px-12 py-12 md:py-16">
+  <div class="max-w-2xl mx-auto text-center space-y-6">
+    <h1 class="font-serif text-4xl font-bold">Track Your Order</h1>
+    <p class="text-fg-secondary">Enter your email to see your order and shipping status.</p>
+
+    <form action="/track" method="GET" class="flex gap-3 justify-center">
+      <input type="email" name="email" value="<%= typeof email !== 'undefined' ? email : '' %>" required placeholder="your@email.com" class="w-80 px-5 py-3.5 rounded-pill border border-border-subtle focus:outline-none focus:border-accent">
+      <button type="submit" class="bg-accent text-white px-7 py-3.5 rounded-pill font-semibold hover:bg-orange-600 transition">Track Order</button>
+    </form>
+
+    <% if (typeof orders !== 'undefined' && orders.length > 0) { %>
+      <div class="space-y-6 mt-8 text-left">
+        <% orders.forEach(order => { %>
+        <div class="bg-surface-secondary rounded-bento p-6 md:p-8 space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="font-serif text-xl font-bold"><%= order.jh_books?.title || 'Order' %> — <span class="capitalize"><%= order.format || 'digital' %></span></h2>
+            <span class="px-3 py-1 rounded-pill text-xs font-semibold
+              <% if (order.fulfillment_status === 'delivered') { %>bg-green-50 text-green-600
+              <% } else if (order.fulfillment_status === 'shipped') { %>bg-blue-50 text-blue-600
+              <% } else if (order.fulfillment_status === 'printing') { %>bg-yellow-50 text-yellow-600
+              <% } else { %>bg-gray-100 text-fg-muted<% } %>">
+              <%= order.fulfillment_status || 'Processing' %>
+            </span>
+          </div>
+
+          <!-- Timeline -->
+          <div class="space-y-4">
+            <div class="flex gap-4 items-start">
+              <div class="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <div>
+                <p class="font-semibold text-sm">Order placed</p>
+                <p class="text-xs text-fg-muted"><%= new Date(order.created_at).toLocaleDateString('en-US', {year:'numeric',month:'short',day:'numeric'}) %> — Payment confirmed</p>
+              </div>
+            </div>
+
+            <% if (order.format === 'paperback') { %>
+            <div class="flex gap-4 items-start">
+              <div class="w-8 h-8 rounded-full <%= order.lulu_print_job_id ? 'bg-accent' : 'bg-border-subtle' %> flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 <%= order.lulu_print_job_id ? 'text-white' : 'text-fg-muted' %>" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              </div>
+              <div>
+                <p class="font-semibold text-sm">Sent to print</p>
+                <p class="text-xs text-fg-muted"><%= order.lulu_print_job_id ? 'Lulu print job #' + order.lulu_print_job_id : 'Waiting...' %></p>
+              </div>
+            </div>
+            <div class="flex gap-4 items-start">
+              <div class="w-8 h-8 rounded-full <%= order.fulfillment_status === 'shipped' || order.fulfillment_status === 'delivered' ? 'bg-accent' : 'bg-border-subtle' %> flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 <%= order.fulfillment_status === 'shipped' || order.fulfillment_status === 'delivered' ? 'text-white' : 'text-fg-muted' %>" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h2a2 2 0 012 2v6a2 2 0 01-2 2H6"/></svg>
+              </div>
+              <div>
+                <p class="font-semibold text-sm">Shipped</p>
+                <% if (order.tracking_number) { %>
+                  <p class="text-xs text-accent font-medium"><%= order.tracking_carrier || 'USPS' %>: <%= order.tracking_number %></p>
+                <% } else { %>
+                  <p class="text-xs text-fg-muted">Waiting for shipment</p>
+                <% } %>
+              </div>
+            </div>
+            <div class="flex gap-4 items-start">
+              <div class="w-8 h-8 rounded-full <%= order.fulfillment_status === 'delivered' ? 'bg-accent' : 'bg-border-subtle' %> flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 <%= order.fulfillment_status === 'delivered' ? 'text-white' : 'text-fg-muted' %>" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+              </div>
+              <div>
+                <p class="font-semibold text-sm <%= order.fulfillment_status !== 'delivered' ? 'text-fg-muted' : '' %>">Delivered</p>
+                <p class="text-xs text-fg-muted"><%= order.delivered_at ? new Date(order.delivered_at).toLocaleDateString() : 'Estimated: 5-10 business days' %></p>
+              </div>
+            </div>
+            <% } else { %>
+            <div class="flex gap-4 items-start">
+              <div class="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </div>
+              <div>
+                <p class="font-semibold text-sm">Download ready</p>
+                <p class="text-xs"><a href="/api/download/<%= order.download_token %>" class="text-accent font-medium hover:underline">Download your <%= order.format === 'audiobook' ? 'audiobook' : 'PDF' %></a></p>
+              </div>
+            </div>
+            <% } %>
+          </div>
+
+          <!-- Shipping address for physical -->
+          <% if (order.format === 'paperback' && order.shipping_address) { %>
+          <div class="flex justify-between border-t border-border-subtle pt-4 text-sm">
+            <div><p class="text-xs font-semibold text-fg-muted mb-1">Shipping to</p><p><%= order.shipping_address?.name || order.email %></p></div>
+            <div class="text-right"><p class="text-xs font-semibold text-fg-muted mb-1">Amount paid</p><p class="text-xl font-bold text-accent">$<%= parseFloat(order.amount).toFixed(2) %></p></div>
+          </div>
+          <% } %>
+        </div>
+        <% }) %>
+      </div>
+    <% } else if (typeof email !== 'undefined') { %>
+      <p class="text-fg-muted mt-8">No orders found for this email.</p>
+    <% } %>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
