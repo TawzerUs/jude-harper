@@ -77,7 +77,8 @@ router.post('/books', requireAdmin, upload.fields([
   { name: 'gallery', maxCount: 10 },
   { name: 'lulu_cover', maxCount: 1 },
   { name: 'lulu_interior', maxCount: 1 },
-  { name: 'audiobook_file', maxCount: 1 }
+  { name: 'audiobook_file', maxCount: 1 },
+  { name: 'audiobook_sample', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const b = req.body;
@@ -94,6 +95,12 @@ router.post('/books', requireAdmin, upload.fields([
       has_audiobook: !!b.has_audiobook,
       has_paperback: !!b.has_paperback,
       audiobook_price: b.audiobook_price ? parseFloat(b.audiobook_price) : null,
+      audiobook_narrator: b.audiobook_narrator || null,
+      audiobook_duration: b.audiobook_duration || null,
+      audiobook_format: b.audiobook_format || 'MP3',
+      audiobook_quality: b.audiobook_quality || '192kbps',
+      audiobook_chapters: b.audiobook_chapters ? parseInt(b.audiobook_chapters) : null,
+      audiobook_chapter_list: b.audiobook_chapter_list || null,
       paperback_price: b.paperback_price ? parseFloat(b.paperback_price) : null,
       // Product details
       pages: b.pages ? parseInt(b.pages) : null,
@@ -145,6 +152,13 @@ router.post('/books', requireAdmin, upload.fields([
       const f = req.files.audiobook_file[0];
       await supabase.storage.from('jh-uploads').upload(`audiobooks/${f.filename}`, fs.readFileSync(f.path), { contentType: f.mimetype });
       bookData.audiobook_file = `audiobooks/${f.filename}`;
+    }
+
+    // Upload audiobook sample clip
+    if (req.files?.audiobook_sample?.[0]) {
+      const f = req.files.audiobook_sample[0];
+      await supabase.storage.from('jh-uploads').upload(`audiobooks/samples/${f.filename}`, fs.readFileSync(f.path), { contentType: f.mimetype });
+      bookData.audiobook_sample = `audiobooks/samples/${f.filename}`;
     }
 
     let bookId = b.book_id ? parseInt(b.book_id) : null;

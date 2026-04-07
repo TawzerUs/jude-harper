@@ -61,15 +61,102 @@
             </div>
           </div>
 
-          <div id="audiobookFields" class="<%= book?.has_audiobook ? '' : 'hidden' %> grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold mb-1.5">Audiobook Price ($)</label>
-              <input type="number" name="audiobook_price" step="0.01" min="0" value="<%= book?.audiobook_price || '' %>" class="w-full px-4 py-3 border border-border-subtle rounded-xl focus:outline-none focus:border-accent">
+          <!-- Audiobook Details Section -->
+          <div id="audiobookFields" class="<%= book?.has_audiobook ? '' : 'hidden' %> border border-blue-200 bg-blue-50/50 rounded-bento p-5 space-y-4">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+              <h3 class="font-bold text-sm">Audiobook Details</h3>
+              <% if (book?.audiobook_file) { %>
+                <span class="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-pill font-semibold">File uploaded</span>
+              <% } %>
             </div>
+            <p class="text-xs text-fg-secondary">Configure your audiobook — narrator, duration, chapters, and audio files.</p>
+
+            <!-- Pricing & Basics -->
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold mb-1">Audiobook Price ($)</label>
+                <input type="number" name="audiobook_price" step="0.01" min="0" value="<%= book?.audiobook_price || '' %>" class="w-full px-3 py-2.5 bg-white border border-border-subtle rounded-lg text-sm focus:outline-none focus:border-accent">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1">Narrator</label>
+                <input type="text" name="audiobook_narrator" value="<%= book?.audiobook_narrator || '' %>" placeholder="Narrator name" class="w-full px-3 py-2.5 bg-white border border-border-subtle rounded-lg text-sm focus:outline-none focus:border-accent">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1">Duration</label>
+                <input type="text" name="audiobook_duration" value="<%= book?.audiobook_duration || '' %>" placeholder="2h 30m" class="w-full px-3 py-2.5 bg-white border border-border-subtle rounded-lg text-sm focus:outline-none focus:border-accent">
+              </div>
+            </div>
+
+            <!-- Audio Files -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold mb-1">Full Audiobook File (MP3)</label>
+                <div class="border border-border-subtle rounded-lg px-3 py-2.5 bg-white">
+                  <input type="file" name="audiobook_file" accept="audio/*" class="text-xs w-full">
+                </div>
+                <% if (book?.audiobook_file) { %>
+                  <div class="flex items-center gap-2 mt-2 bg-white rounded-lg px-3 py-2 border border-border-subtle">
+                    <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>
+                    <span class="text-xs text-fg-secondary truncate"><%= book.audiobook_file %></span>
+                    <span class="text-xs text-green-600 font-medium shrink-0">Uploaded</span>
+                  </div>
+                <% } %>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1">Sample Clip (optional, 1-3 min preview)</label>
+                <div class="border border-border-subtle rounded-lg px-3 py-2.5 bg-white">
+                  <input type="file" name="audiobook_sample" accept="audio/*" class="text-xs w-full">
+                </div>
+                <% if (book?.audiobook_sample) { %>
+                  <div class="flex items-center gap-2 mt-2 bg-white rounded-lg px-3 py-2 border border-border-subtle">
+                    <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>
+                    <span class="text-xs text-fg-secondary truncate"><%= book.audiobook_sample %></span>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Additional Details -->
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold mb-1">Audio Format</label>
+                <select name="audiobook_format" class="w-full px-3 py-2.5 bg-white border border-border-subtle rounded-lg text-sm focus:outline-none focus:border-accent">
+                  <option value="MP3" <%= book?.audiobook_format === 'MP3' ? 'selected' : '' %>>MP3</option>
+                  <option value="M4A" <%= book?.audiobook_format === 'M4A' ? 'selected' : '' %>>M4A (AAC)</option>
+                  <option value="FLAC" <%= book?.audiobook_format === 'FLAC' ? 'selected' : '' %>>FLAC (Lossless)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1">Audio Quality</label>
+                <select name="audiobook_quality" class="w-full px-3 py-2.5 bg-white border border-border-subtle rounded-lg text-sm focus:outline-none focus:border-accent">
+                  <option value="128kbps" <%= book?.audiobook_quality === '128kbps' ? 'selected' : '' %>>128 kbps (Standard)</option>
+                  <option value="192kbps" <%= book?.audiobook_quality === '192kbps' ? 'selected' : '' %>>192 kbps (High)</option>
+                  <option value="320kbps" <%= book?.audiobook_quality === '320kbps' ? 'selected' : '' %>>320 kbps (Premium)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1">Chapters</label>
+                <input type="number" name="audiobook_chapters" min="0" value="<%= book?.audiobook_chapters || '' %>" placeholder="12" class="w-full px-3 py-2.5 bg-white border border-border-subtle rounded-lg text-sm focus:outline-none focus:border-accent">
+              </div>
+            </div>
+
+            <!-- Chapter List (optional) -->
             <div>
-              <label class="block text-sm font-semibold mb-1.5">Audiobook File (MP3)</label>
-              <input type="file" name="audiobook_file" accept="audio/*" class="text-sm mt-1">
-              <% if (book?.audiobook_file) { %><p class="text-xs text-fg-muted mt-1">Current: <%= book.audiobook_file %></p><% } %>
+              <label class="block text-xs font-semibold mb-1">Chapter List (one per line: title — duration)</label>
+              <textarea name="audiobook_chapter_list" rows="4" placeholder="Chapter 1: The Beginning — 12:30&#10;Chapter 2: Going Deeper — 15:45&#10;Chapter 3: The Turning Point — 18:20" class="w-full px-3 py-2.5 bg-white border border-border-subtle rounded-lg text-sm focus:outline-none focus:border-accent"><%= book?.audiobook_chapter_list || '' %></textarea>
+            </div>
+
+            <!-- Preview on storefront -->
+            <div class="bg-white rounded-lg p-4 border border-border-subtle">
+              <p class="text-xs font-semibold text-fg-muted mb-2">Customer experience:</p>
+              <div class="flex items-center gap-2 text-xs text-fg-secondary">
+                <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-pill font-semibold">1. Buy</span>
+                <span class="text-fg-muted">&rarr;</span>
+                <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-pill font-semibold">2. Stream in browser</span>
+                <span class="text-fg-muted">&rarr;</span>
+                <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-pill font-semibold">3. Download MP3</span>
+              </div>
             </div>
           </div>
 
