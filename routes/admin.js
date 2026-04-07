@@ -111,9 +111,11 @@ router.post('/books', requireAdmin, upload.fields([
   if (file_path) bookData.file_path = file_path;
 
   if (book_id) {
-    await supabase.from('jh_books').update(bookData).eq('id', book_id);
+    const { error } = await supabase.from('jh_books').update(bookData).eq('id', book_id);
+    if (error) console.error('Update book error:', error);
   } else {
-    await supabase.from('jh_books').insert(bookData);
+    const { error } = await supabase.from('jh_books').insert(bookData);
+    if (error) console.error('Insert book error:', error);
   }
 
   res.redirect('/admin');
