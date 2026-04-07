@@ -3,11 +3,11 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
-const { getDb } = require('../db/setup');
+const { supabase } = require('../db/setup');
 
-// File upload config
+// File upload config (to /tmp for now — later use Supabase Storage)
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join('/tmp')),
+  destination: (req, file, cb) => cb(null, '/tmp'),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, crypto.randomBytes(8).toString('hex') + ext);
@@ -42,13 +42,20 @@ router.get('/logout', (req, res) => {
 });
 
 // Dashboard
-router.get('/', requireAdmin, (req, res) => {
-  const db = getDb();
-  const books = db.all('books').sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  const orderCount = db.count('orders', o => o.status === 'completed');
-  const subscriberCount = db.count('subscribers');
-  const revenue = db.sum('orders', 'amount', o => o.status === 'completed');
-  res.render('admin/dashboard', { title: 'Admin Dashboard', books, orderCount, subscriberCount, revenue });
+router.get('/', requireAdmin, async (req, res) => {
+  const { data: books } = await supabase.from('jh_books').select('*').order('created_at', { ascending: false });
+  const { count: orderCount } = await supabase.from('jh_orders').select('*', { count: 'exact', head: true }).eq('status', 'completed');
+  const { count: subscriberCount } = await supabase.from('jh_subscribers').select('*', { count: 'exact', head: true });
+  const { data: revenueData } = await supabase.from('jh_orders').select('amount').eq('status', 'completed');
+  const revenue = (revenueData || []).reduce((sum, o) => sum + parseFloat(o.amount), 0);
+
+  res.render('admin/dashboard', {
+    title: 'Admin Dashboard',
+    books: books || [],
+    orderCount: orderCount || 0,
+    subscriberCount: subscriberCount || 0,
+    revenue
+  });
 });
 
 // Add book form
@@ -57,9 +64,8 @@ router.get('/books/new', requireAdmin, (req, res) => {
 });
 
 // Edit book form
-router.get('/books/:id/edit', requireAdmin, (req, res) => {
-  const db = getDb();
-  const book = db.get('books', b => b.id === parseInt(req.params.id));
+router.get('/books/:id/edit', requireAdmin, async (req, res) => {
+  const { data: book } = await supabase.from('jh_books').select('*').eq('id', req.params.id).single();
   if (!book) return res.redirect('/admin');
   res.render('admin/book-form', { title: 'Edit Book', book });
 });
@@ -68,58 +74,68 @@ router.get('/books/:id/edit', requireAdmin, (req, res) => {
 router.post('/books', requireAdmin, upload.fields([
   { name: 'cover', maxCount: 1 },
   { name: 'file', maxCount: 1 }
-]), (req, res) => {
+]), async (req, res) => {
   const { title, slug, description, long_description, price, category, featured, active, book_id } = req.body;
-  const db = getDb();
 
-  const cover_image = req.files?.cover?.[0]?.filename || null;
-  const file_path = req.files?.file?.[0]?.filename || null;
+  let cover_image = null;
+  let file_path = null;
+
+  // Upload cover to Supabase Storage if provided
+  if (req.files?.cover?.[0]) {
+    const coverFile = req.files.cover[0];
+    const fs = require('fs');
+    const fileBuffer = fs.readFileSync(coverFile.path);
+    const fileName = `covers/${coverFile.filename}`;
+    await supabase.storage.from('jh-uploads').upload(fileName, fileBuffer, { contentType: coverFile.mimetype });
+    const { data: urlData } = supabase.storage.from('jh-uploads').getPublicUrl(fileName);
+    cover_image = urlData.publicUrl;
+  }
+
+  if (req.files?.file?.[0]) {
+    const bookFile = req.files.file[0];
+    const fs = require('fs');
+    const fileBuffer = fs.readFileSync(bookFile.path);
+    const fileName = `files/${bookFile.filename}`;
+    await supabase.storage.from('jh-uploads').upload(fileName, fileBuffer, { contentType: bookFile.mimetype });
+    file_path = fileName;
+  }
+
+  const bookData = {
+    title, slug, description, long_description,
+    price: parseFloat(price),
+    category,
+    featured: !!featured,
+    active: !!active
+  };
+  if (cover_image) bookData.cover_image = cover_image;
+  if (file_path) bookData.file_path = file_path;
 
   if (book_id) {
-    const updates = {
-      title, slug, description, long_description,
-      price: parseFloat(price),
-      category,
-      featured: featured ? 1 : 0,
-      active: active ? 1 : 0
-    };
-    if (cover_image) updates.cover_image = cover_image;
-    if (file_path) updates.file_path = file_path;
-    db.update('books', parseInt(book_id), updates);
+    await supabase.from('jh_books').update(bookData).eq('id', book_id);
   } else {
-    db.insert('books', {
-      title, slug, description, long_description,
-      price: parseFloat(price),
-      cover_image, file_path, category,
-      featured: featured ? 1 : 0,
-      active: active ? 1 : 0
-    });
+    await supabase.from('jh_books').insert(bookData);
   }
+
   res.redirect('/admin');
 });
 
 // Delete book
-router.post('/books/:id/delete', requireAdmin, (req, res) => {
-  const db = getDb();
-  db.delete('books', parseInt(req.params.id));
+router.post('/books/:id/delete', requireAdmin, async (req, res) => {
+  await supabase.from('jh_books').delete().eq('id', req.params.id);
   res.redirect('/admin');
 });
 
 // Orders list
-router.get('/orders', requireAdmin, (req, res) => {
-  const db = getDb();
-  const orders = db.all('orders').sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(order => {
-    const book = db.get('books', b => b.id === order.book_id);
-    return { ...order, book_title: book?.title || 'Unknown' };
-  });
-  res.render('admin/orders', { title: 'Orders', orders });
+router.get('/orders', requireAdmin, async (req, res) => {
+  const { data: orders } = await supabase.from('jh_orders').select('*, jh_books(title)').order('created_at', { ascending: false });
+  const mapped = (orders || []).map(o => ({ ...o, book_title: o.jh_books?.title || 'Unknown' }));
+  res.render('admin/orders', { title: 'Orders', orders: mapped });
 });
 
 // Subscribers list
-router.get('/subscribers', requireAdmin, (req, res) => {
-  const db = getDb();
-  const subscribers = db.all('subscribers').sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  res.render('admin/subscribers', { title: 'Subscribers', subscribers });
+router.get('/subscribers', requireAdmin, async (req, res) => {
+  const { data: subscribers } = await supabase.from('jh_subscribers').select('*').order('created_at', { ascending: false });
+  res.render('admin/subscribers', { title: 'Subscribers', subscribers: subscribers || [] });
 });
 
 module.exports = router;

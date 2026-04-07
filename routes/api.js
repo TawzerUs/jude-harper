@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const { getDb } = require('../db/setup');
+const { supabase } = require('../db/setup');
 
 // Stripe checkout session
 router.post('/checkout', async (req, res) => {
@@ -11,8 +11,7 @@ router.post('/checkout', async (req, res) => {
   }
 
   const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-  const db = getDb();
-  const book = db.get('books', b => b.id === parseInt(bookId) && b.active === 1);
+  const { data: book } = await supabase.from('jh_books').select('*').eq('id', bookId).eq('active', true).single();
 
   if (!book) return res.status(404).json({ error: 'Book not found' });
 
@@ -46,9 +45,8 @@ router.get('/success', async (req, res) => {
   const session = await stripe.checkout.sessions.retrieve(session_id);
 
   if (session.payment_status === 'paid') {
-    const db = getDb();
     const downloadToken = crypto.randomBytes(32).toString('hex');
-    db.insert('orders', {
+    await supabase.from('jh_orders').insert({
       book_id: parseInt(session.metadata.book_id),
       email: session.customer_details.email,
       stripe_session_id: session.id,
@@ -64,23 +62,27 @@ router.get('/success', async (req, res) => {
 });
 
 // Download with token
-router.get('/download/:token', (req, res) => {
-  const db = getDb();
-  const order = db.get('orders', o => o.download_token === req.params.token && o.status === 'completed');
+router.get('/download/:token', async (req, res) => {
+  const { data: order } = await supabase.from('jh_orders').select('*, jh_books(*)').eq('download_token', req.params.token).eq('status', 'completed').single();
 
-  if (!order) return res.status(404).render('404', { title: 'Download Not Found' });
-
-  const book = db.get('books', b => b.id === order.book_id);
-  if (!book || !book.file_path) return res.status(404).render('404', { title: 'File Not Found' });
+  if (!order || !order.jh_books?.file_path) {
+    return res.status(404).render('404', { title: 'Download Not Found' });
+  }
 
   if (order.download_count >= 5) {
     return res.status(403).send('Download limit reached. Contact support.');
   }
 
-  db.update('orders', order.id, { download_count: order.download_count + 1 });
+  await supabase.from('jh_orders').update({ download_count: order.download_count + 1 }).eq('id', order.id);
 
-  const path = require('path');
-  res.download(path.join('/tmp', book.file_path), `${book.title}.pdf`);
+  // Download from Supabase Storage
+  const { data, error } = await supabase.storage.from('jh-uploads').download(order.jh_books.file_path);
+  if (error || !data) return res.status(404).render('404', { title: 'File Not Found' });
+
+  const buffer = Buffer.from(await data.arrayBuffer());
+  res.set('Content-Disposition', `attachment; filename="${order.jh_books.title}.pdf"`);
+  res.set('Content-Type', 'application/pdf');
+  res.send(buffer);
 });
 
 module.exports = router;
