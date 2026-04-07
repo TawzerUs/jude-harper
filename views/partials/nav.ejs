@@ -8,7 +8,9 @@
       <a href="/about" class="text-fg-secondary hover:text-fg-primary transition">About</a>
       <a href="/track" class="text-fg-secondary hover:text-fg-primary transition">Track Order</a>
       <% if (isAdmin) { %>
-        <a href="/admin" class="text-accent hover:text-orange-700 transition">Admin</a>
+        <a href="/admin" class="text-accent hover:text-orange-700 transition"><%= adminName || 'Dashboard' %></a>
+      <% } else { %>
+        <a href="/admin/login" class="text-fg-secondary hover:text-fg-primary transition">Login</a>
       <% } %>
       <a href="/books" class="bg-accent text-white px-6 py-2.5 rounded-pill text-sm font-semibold hover:bg-orange-600 transition">Shop Now</a>
     </div>
