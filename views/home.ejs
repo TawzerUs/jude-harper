@@ -15,10 +15,14 @@
         </div>
       </div>
       <div class="w-full max-w-sm md:max-w-none md:w-[480px] shrink-0">
-        <% if (featured.length > 0 && featured[0].cover_image) { %>
-          <img src="<%= featured[0].cover_image %>" alt="<%= featured[0].title %>" class="w-full aspect-[3/4] object-contain rounded-bento shadow-xl bg-surface-secondary">
+        <%
+          const heroProduct = [...featured, ...books].find(b => b.cover_image);
+        %>
+        <% if (heroProduct?.cover_image) { %>
+          <img src="<%= heroProduct.cover_image %>" alt="<%= heroProduct.title %>" class="w-full aspect-[3/4] object-contain rounded-bento shadow-xl bg-surface-secondary">
         <% } else { %>
-          <div class="w-full aspect-[3/4] bg-gradient-to-br from-orange-50 to-orange-100 rounded-bento flex items-center justify-center">
+          <div class="w-full aspect-[3/4] bg-gradient-to-br from-orange-50 to-orange-100 rounded-bento flex flex-col items-center justify-center gap-4">
+            <svg class="w-20 h-20 text-accent/30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
             <span class="font-serif text-3xl text-accent/50">Jude Harper</span>
           </div>
         <% } %>

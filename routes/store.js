@@ -28,7 +28,7 @@ router.get('/book/:slug', async (req, res) => {
     sampleUrl = sData?.publicUrl;
   }
 
-  res.render('book-detail', { title: `${book.title} - Jude Harper`, book, gallery: gallery || [], sampleUrl });
+  res.render('book-detail', { title: `${book.title} - Jude Harper`, book, gallery: gallery || [], sampleUrl, reqFormat: req.query.format || null });
 });
 
 // Audiobooks page

@@ -62,7 +62,9 @@
 
       <!-- Format Toggle -->
       <%
-        const defaultFmt = book.has_digital !== false ? 'digital' : book.has_audiobook ? 'audiobook' : 'paperback';
+        const qFmt = typeof reqFormat !== 'undefined' ? reqFormat : null;
+        const autoFmt = book.has_digital !== false ? 'digital' : book.has_audiobook ? 'audiobook' : 'paperback';
+        const defaultFmt = (qFmt === 'audiobook' && book.has_audiobook) ? 'audiobook' : (qFmt === 'paperback' && book.has_paperback) ? 'paperback' : (qFmt === 'digital' && book.has_digital !== false) ? 'digital' : autoFmt;
       %>
       <% if (book.has_digital || book.has_paperback || book.has_audiobook) { %>
       <div class="flex rounded-xl border border-border-subtle overflow-hidden">
@@ -135,13 +137,17 @@
       </div>
 
       <!-- Price & CTA -->
+      <%
+        const initPrice = defaultFmt === 'audiobook' && book.audiobook_price ? parseFloat(book.audiobook_price) : defaultFmt === 'paperback' && book.paperback_price ? parseFloat(book.paperback_price) : parseFloat(book.price);
+        const initLabel = defaultFmt === 'audiobook' ? 'Audiobook (MP3)' : defaultFmt === 'paperback' ? 'Paperback — Ships in 5-10 days' : 'Digital Download (PDF)';
+      %>
       <div class="flex items-center gap-6">
-        <span id="priceDisplay" class="text-3xl font-bold">$<%= parseFloat(book.price).toFixed(2) %></span>
-        <span class="text-sm text-fg-muted" id="formatLabel">Digital Download (PDF)</span>
+        <span id="priceDisplay" class="text-3xl font-bold">$<%= initPrice.toFixed(2) %></span>
+        <span class="text-sm text-fg-muted" id="formatLabel"><%= initLabel %></span>
       </div>
 
       <button onclick="buyBook(<%= book.id %>)" class="bg-accent text-white px-8 py-4 rounded-pill font-semibold text-lg hover:bg-orange-600 transition w-full md:w-auto">
-        Buy Now — $<span id="ctaPrice"><%= parseFloat(book.price).toFixed(2) %></span>
+        Buy Now — $<span id="ctaPrice"><%= initPrice.toFixed(2) %></span>
       </button>
 
       <!-- Product Details -->

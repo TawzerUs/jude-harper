@@ -15,7 +15,10 @@
     <% } %>
     <div class="flex items-center justify-between">
       <p class="text-xl font-bold text-accent">
-        <% if (book.price == 0) { %>Free<% } else { %>$<%= parseFloat(book.price).toFixed(2) %><% } %>
+        <%
+          const cardPrice = parseFloat(book.price) > 0 ? book.price : book.audiobook_price || book.paperback_price || book.price;
+        %>
+        <% if (parseFloat(cardPrice) == 0) { %>Free<% } else { %>From $<%= parseFloat(cardPrice).toFixed(2) %><% } %>
       </p>
       <span class="bg-accent text-white text-xs font-semibold px-4 py-2 rounded-pill group-hover:bg-orange-600 transition">Buy Now</span>
     </div>
