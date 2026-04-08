@@ -9,10 +9,11 @@ router.get('/', async (req, res) => {
   res.render('home', { title: 'Jude Harper', featured: featured || [], books: books || [] });
 });
 
-// All books
+// All books (only products with digital/paperback — not audiobook-only)
 router.get('/books', async (req, res) => {
-  const { data: books } = await supabase.from('jh_books').select('*').eq('active', true).order('created_at', { ascending: false });
-  res.render('books', { title: 'All Books - Jude Harper', books: books || [] });
+  const { data: allBooks } = await supabase.from('jh_books').select('*').eq('active', true).order('created_at', { ascending: false });
+  const books = (allBooks || []).filter(b => b.has_digital || b.has_paperback);
+  res.render('books', { title: 'All Books - Jude Harper', books });
 });
 
 // Single book page with gallery
