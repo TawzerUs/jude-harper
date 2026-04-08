@@ -382,57 +382,91 @@ document.querySelector('[name="cover"]')?.addEventListener('change', function(e)
   reader.readAsDataURL(file);
 });
 
-// Client-side upload for large files (audiobook, lulu PDFs)
-// Files over 4MB go directly to Supabase via signed URL
+// Upload ALL files client-side to Supabase (bypasses Vercel 4.5MB limit)
 const form = document.querySelector('form');
 form?.addEventListener('submit', async function(e) {
-  const largeFields = ['audiobook_file', 'audiobook_sample', 'lulu_cover', 'lulu_interior'];
-  const MAX_SERVER_SIZE = 4 * 1024 * 1024; // 4MB
+  e.preventDefault();
 
-  for (const fieldName of largeFields) {
-    const input = form.querySelector(`[name="${fieldName}"]`);
-    if (!input?.files?.[0]) continue;
-    const file = input.files[0];
-    if (file.size <= MAX_SERVER_SIZE) continue;
+  const fileFields = [
+    { name: 'cover', folder: 'covers', pathField: 'cover_path', urlField: 'cover_url' },
+    { name: 'file', folder: 'files', pathField: 'file_path_val' },
+    { name: 'gallery', folder: 'gallery', pathField: 'gallery_paths', multi: true },
+    { name: 'audiobook_file', folder: 'audiobooks', pathField: 'audiobook_file_path' },
+    { name: 'audiobook_sample', folder: 'audiobooks/samples', pathField: 'audiobook_sample_path' },
+    { name: 'lulu_cover', folder: 'lulu', pathField: 'lulu_cover_path' },
+    { name: 'lulu_interior', folder: 'lulu', pathField: 'lulu_interior_path' }
+  ];
 
-    // Large file — upload client-side
-    e.preventDefault();
+  const submitBtn = form.querySelector('[type="submit"]');
+  const origBtnText = submitBtn.textContent;
+  submitBtn.textContent = 'Uploading files...';
+  submitBtn.disabled = true;
 
-    const folder = fieldName.includes('lulu') ? 'lulu' : fieldName.includes('sample') ? 'audiobooks/samples' : 'audiobooks';
-    const statusEl = input.parentElement;
-    const origHtml = statusEl.innerHTML;
-    statusEl.innerHTML = '<p class="text-sm text-accent font-medium">Uploading ' + file.name + '...</p><div class="w-full bg-gray-200 rounded-full h-2 mt-2"><div id="prog_' + fieldName + '" class="bg-accent h-2 rounded-full" style="width:0%"></div></div>';
+  try {
+    for (const field of fileFields) {
+      const input = form.querySelector(`[name="${field.name}"]`);
+      if (!input?.files?.length) continue;
 
-    try {
-      const res = await fetch('/api/upload-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, folder })
-      });
-      const { signedUrl, token, path, publicUrl } = await res.json();
+      const files = field.multi ? Array.from(input.files) : [input.files[0]];
+      const paths = [];
+      const urls = [];
 
-      await fetch(signedUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file
-      });
+      for (const file of files) {
+        submitBtn.textContent = `Uploading ${file.name}...`;
 
-      // Replace file input with hidden input containing the path
-      statusEl.innerHTML = '<input type="hidden" name="' + fieldName + '_path" value="' + path + '"><p class="text-xs text-green-600 font-medium">Uploaded: ' + file.name + '</p>';
+        const res = await fetch('/api/upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, folder: field.folder })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
 
-      // Clear the file input so it's not sent to server
+        await fetch(data.signedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type },
+          body: file
+        });
+
+        paths.push(data.path);
+        urls.push(data.publicUrl);
+      }
+
+      // Add hidden inputs with the uploaded paths
+      if (field.multi) {
+        paths.forEach(p => {
+          const h = document.createElement('input');
+          h.type = 'hidden'; h.name = 'gallery_paths[]'; h.value = p;
+          form.appendChild(h);
+        });
+        urls.forEach(u => {
+          const h = document.createElement('input');
+          h.type = 'hidden'; h.name = 'gallery_urls[]'; h.value = u;
+          form.appendChild(h);
+        });
+      } else {
+        const h = document.createElement('input');
+        h.type = 'hidden'; h.name = field.pathField; h.value = paths[0];
+        form.appendChild(h);
+        if (field.urlField) {
+          const hu = document.createElement('input');
+          hu.type = 'hidden'; hu.name = field.urlField; hu.value = urls[0];
+          form.appendChild(hu);
+        }
+      }
+
+      // Clear file input so it's not sent to server
       const dt = new DataTransfer();
       input.files = dt.files;
-    } catch (err) {
-      statusEl.innerHTML = origHtml;
-      alert('Upload failed: ' + err.message);
-      return;
     }
-  }
 
-  // Now submit the form (small files go through server normally)
-  if (!e.defaultPrevented) return;
-  form.submit();
+    submitBtn.textContent = 'Saving...';
+    form.submit();
+  } catch (err) {
+    submitBtn.textContent = origBtnText;
+    submitBtn.disabled = false;
+    alert('Upload failed: ' + err.message);
+  }
 });
 </script>
 
