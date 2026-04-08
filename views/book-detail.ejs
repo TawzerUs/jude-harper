@@ -5,15 +5,15 @@
   <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 md:gap-12">
 
     <!-- Gallery Thumbnails -->
-    <div class="hidden md:flex flex-col gap-2 w-20 shrink-0">
-      <div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-accent cursor-pointer">
-        <% if (book.cover_image) { %>
-          <img src="<%= book.cover_image %>" alt="" class="w-full h-full object-cover">
-        <% } %>
+    <div class="hidden md:flex flex-col gap-2 w-20 shrink-0" id="galleryThumbs">
+      <% if (book.cover_image) { %>
+      <div class="gallery-thumb w-20 h-20 rounded-lg overflow-hidden border-2 border-accent cursor-pointer" onclick="setMainImage('<%= book.cover_image %>', this)">
+        <img src="<%= book.cover_image %>" alt="" class="w-full h-full object-cover">
       </div>
+      <% } %>
       <% if (typeof gallery !== 'undefined' && gallery.length > 0) { %>
         <% gallery.forEach((img, i) => { %>
-          <div class="w-20 h-20 rounded-lg overflow-hidden border border-border-subtle cursor-pointer hover:border-accent transition" onclick="setMainImage('<%= img.url %>')">
+          <div class="gallery-thumb w-20 h-20 rounded-lg overflow-hidden border border-border-subtle cursor-pointer hover:border-accent transition" onclick="setMainImage('<%= img.url %>', this)">
             <% if (img.type === 'video') { %>
               <div class="w-full h-full bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-fg-muted" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
             <% } else { %>
@@ -189,9 +189,17 @@
 </main>
 
 <script>
-function setMainImage(url) {
+function setMainImage(url, thumb) {
   const img = document.getElementById('mainImage');
   if (img) img.src = url;
+  // Highlight active thumbnail
+  document.querySelectorAll('.gallery-thumb').forEach(t => {
+    t.className = t.className.replace('border-accent border-2', 'border-border-subtle border');
+  });
+  if (thumb) {
+    thumb.className = thumb.className.replace('border-border-subtle border', 'border-accent border-2');
+    if (!thumb.className.includes('border-2')) thumb.className += ' border-2 border-accent';
+  }
 }
 
 let selectedFormat = '<%= defaultFmt %>';
