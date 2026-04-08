@@ -403,9 +403,11 @@ form?.addEventListener('submit', async function(e) {
   submitBtn.disabled = true;
 
   try {
+    let hasFiles = false;
     for (const field of fileFields) {
       const input = form.querySelector(`[name="${field.name}"]`);
       if (!input?.files?.length) continue;
+      hasFiles = true;
 
       const files = field.multi ? Array.from(input.files) : [input.files[0]];
       const paths = [];
@@ -422,11 +424,19 @@ form?.addEventListener('submit', async function(e) {
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 
-        await fetch(data.signedUrl, {
+        // Supabase signed upload: PUT with token in URL
+        const uploadRes = await fetch(data.signedUrl, {
           method: 'PUT',
-          headers: { 'Content-Type': file.type },
+          headers: {
+            'Content-Type': file.type,
+            'x-upsert': 'true'
+          },
           body: file
         });
+        if (!uploadRes.ok) {
+          const errText = await uploadRes.text();
+          throw new Error('Upload failed: ' + errText);
+        }
 
         paths.push(data.path);
         urls.push(data.publicUrl);
@@ -460,9 +470,15 @@ form?.addEventListener('submit', async function(e) {
       input.files = dt.files;
     }
 
-    submitBtn.textContent = 'Saving...';
+    submitBtn.textContent = hasFiles ? 'Saving...' : origBtnText;
+    // Remove file inputs before submitting (data goes via hidden fields)
+    fileFields.forEach(f => {
+      const input = form.querySelector(`[name="${f.name}"]`);
+      if (input) { const dt = new DataTransfer(); input.files = dt.files; }
+    });
     form.submit();
   } catch (err) {
+    console.error('Upload error:', err);
     submitBtn.textContent = origBtnText;
     submitBtn.disabled = false;
     alert('Upload failed: ' + err.message);

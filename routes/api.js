@@ -3,9 +3,8 @@ const router = express.Router();
 const crypto = require('crypto');
 const { supabase } = require('../db/setup');
 
-// Signed upload URL for large files (bypasses Vercel 4.5MB limit)
+// Get signed upload URL for direct browser-to-Supabase upload
 router.post('/upload-url', async (req, res) => {
-  // Only allow admins
   if (!req.session?.isAdmin) return res.status(401).json({ error: 'Unauthorized' });
 
   const { filename, folder } = req.body;
@@ -13,14 +12,14 @@ router.post('/upload-url', async (req, res) => {
 
   const ext = filename.split('.').pop();
   const safeName = crypto.randomBytes(8).toString('hex') + '.' + ext;
-  const path = `${folder}/${safeName}`;
+  const storagePath = `${folder}/${safeName}`;
 
-  const { data, error } = await supabase.storage.from('jh-uploads').createSignedUploadUrl(path);
+  const { data, error } = await supabase.storage.from('jh-uploads').createSignedUploadUrl(storagePath);
   if (error) return res.status(500).json({ error: error.message });
 
-  const { data: urlData } = supabase.storage.from('jh-uploads').getPublicUrl(path);
+  const { data: urlData } = supabase.storage.from('jh-uploads').getPublicUrl(storagePath);
 
-  res.json({ signedUrl: data.signedUrl, token: data.token, path, publicUrl: urlData.publicUrl });
+  res.json({ signedUrl: data.signedUrl, token: data.token, path: storagePath, publicUrl: urlData.publicUrl });
 });
 
 // Resolve Stripe key from various possible env var names
