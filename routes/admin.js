@@ -192,7 +192,10 @@ router.post('/books', requireAdmin, upload.fields([
     }
 
     // Gallery images (uploaded client-side)
-    const galleryUrls = Array.isArray(b['gallery_urls[]']) ? b['gallery_urls[]'] : (b['gallery_urls[]'] ? [b['gallery_urls[]']] : []);
+    // Check both possible field name formats
+    const rawGallery = b['gallery_urls[]'] || b['gallery_urls'] || [];
+    const galleryUrls = Array.isArray(rawGallery) ? rawGallery : [rawGallery].filter(Boolean);
+    console.log('Gallery URLs received:', galleryUrls.length, galleryUrls);
     if (galleryUrls.length > 0 && bookId) {
       const { data: existing } = await supabase.from('jh_book_gallery').select('sort_order').eq('book_id', bookId).order('sort_order', { ascending: false }).limit(1);
       let sortOrder = (existing?.[0]?.sort_order || 0) + 1;
