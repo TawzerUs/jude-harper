@@ -1,0 +1,7 @@
+*.pen
+images/
+.claude/
+scripts/
+.env
+.env.*
+*.md
