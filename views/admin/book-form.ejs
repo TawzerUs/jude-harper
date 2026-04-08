@@ -40,8 +40,11 @@
               <select name="category" class="w-full px-4 py-3 border border-border-subtle rounded-xl focus:outline-none focus:border-accent">
                 <option value="book" <%= book?.category === 'book' ? 'selected' : '' %>>Book</option>
                 <option value="ebook" <%= book?.category === 'ebook' ? 'selected' : '' %>>E-Book</option>
+                <option value="audiobook" <%= book?.category === 'audiobook' ? 'selected' : '' %>>Audiobook</option>
                 <option value="guide" <%= book?.category === 'guide' ? 'selected' : '' %>>Guide</option>
                 <option value="workbook" <%= book?.category === 'workbook' ? 'selected' : '' %>>Workbook</option>
+                <option value="course" <%= book?.category === 'course' ? 'selected' : '' %>>Course</option>
+                <option value="template" <%= book?.category === 'template' ? 'selected' : '' %>>Template</option>
               </select>
             </div>
           </div>
@@ -360,6 +363,77 @@ function toggleSections() {
   document.getElementById('productDetailsSection').classList.toggle('hidden', !paper);
   document.getElementById('luluSection').classList.toggle('hidden', !paper);
 }
+
+// Cover image preview when selected
+document.querySelector('[name="cover"]')?.addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    let img = document.getElementById('coverPreview');
+    if (!img) {
+      img = document.createElement('img');
+      img.id = 'coverPreview';
+      img.className = 'w-full max-h-60 object-contain mb-3 rounded-lg';
+      e.target.parentElement.prepend(img);
+    }
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Client-side upload for large files (audiobook, lulu PDFs)
+// Files over 4MB go directly to Supabase via signed URL
+const form = document.querySelector('form');
+form?.addEventListener('submit', async function(e) {
+  const largeFields = ['audiobook_file', 'audiobook_sample', 'lulu_cover', 'lulu_interior'];
+  const MAX_SERVER_SIZE = 4 * 1024 * 1024; // 4MB
+
+  for (const fieldName of largeFields) {
+    const input = form.querySelector(`[name="${fieldName}"]`);
+    if (!input?.files?.[0]) continue;
+    const file = input.files[0];
+    if (file.size <= MAX_SERVER_SIZE) continue;
+
+    // Large file — upload client-side
+    e.preventDefault();
+
+    const folder = fieldName.includes('lulu') ? 'lulu' : fieldName.includes('sample') ? 'audiobooks/samples' : 'audiobooks';
+    const statusEl = input.parentElement;
+    const origHtml = statusEl.innerHTML;
+    statusEl.innerHTML = '<p class="text-sm text-accent font-medium">Uploading ' + file.name + '...</p><div class="w-full bg-gray-200 rounded-full h-2 mt-2"><div id="prog_' + fieldName + '" class="bg-accent h-2 rounded-full" style="width:0%"></div></div>';
+
+    try {
+      const res = await fetch('/api/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, folder })
+      });
+      const { signedUrl, token, path, publicUrl } = await res.json();
+
+      await fetch(signedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+
+      // Replace file input with hidden input containing the path
+      statusEl.innerHTML = '<input type="hidden" name="' + fieldName + '_path" value="' + path + '"><p class="text-xs text-green-600 font-medium">Uploaded: ' + file.name + '</p>';
+
+      // Clear the file input so it's not sent to server
+      const dt = new DataTransfer();
+      input.files = dt.files;
+    } catch (err) {
+      statusEl.innerHTML = origHtml;
+      alert('Upload failed: ' + err.message);
+      return;
+    }
+  }
+
+  // Now submit the form (small files go through server normally)
+  if (!e.defaultPrevented) return;
+  form.submit();
+});
 </script>
 
 <%- include('../partials/footer') %>

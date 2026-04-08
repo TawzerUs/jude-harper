@@ -3,6 +3,26 @@ const router = express.Router();
 const crypto = require('crypto');
 const { supabase } = require('../db/setup');
 
+// Signed upload URL for large files (bypasses Vercel 4.5MB limit)
+router.post('/upload-url', async (req, res) => {
+  // Only allow admins
+  if (!req.session?.isAdmin) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { filename, folder } = req.body;
+  if (!filename || !folder) return res.status(400).json({ error: 'filename and folder required' });
+
+  const ext = filename.split('.').pop();
+  const safeName = crypto.randomBytes(8).toString('hex') + '.' + ext;
+  const path = `${folder}/${safeName}`;
+
+  const { data, error } = await supabase.storage.from('jh-uploads').createSignedUploadUrl(path);
+  if (error) return res.status(500).json({ error: error.message });
+
+  const { data: urlData } = supabase.storage.from('jh-uploads').getPublicUrl(path);
+
+  res.json({ signedUrl: data.signedUrl, token: data.token, path, publicUrl: urlData.publicUrl });
+});
+
 // Resolve Stripe key from various possible env var names
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_API_KEY || process.env.STRIPE_KEY;
 

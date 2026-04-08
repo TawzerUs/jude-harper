@@ -1,8 +1,5 @@
 *.pen
-images/
-listings/
 .claude/
 scripts/
 .env
 .env.*
-*.md

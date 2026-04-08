@@ -186,6 +186,8 @@ router.post('/books', requireAdmin, upload.fields([
       const f = req.files.lulu_cover[0];
       await supabase.storage.from('jh-uploads').upload(`lulu/${f.filename}`, fs.readFileSync(f.path), { contentType: f.mimetype });
       bookData.lulu_cover_pdf = `lulu/${f.filename}`;
+    } else if (b.lulu_cover_path) {
+      bookData.lulu_cover_pdf = b.lulu_cover_path;
     }
 
     // Upload Lulu interior PDF
@@ -193,13 +195,17 @@ router.post('/books', requireAdmin, upload.fields([
       const f = req.files.lulu_interior[0];
       await supabase.storage.from('jh-uploads').upload(`lulu/${f.filename}`, fs.readFileSync(f.path), { contentType: f.mimetype });
       bookData.lulu_interior_pdf = `lulu/${f.filename}`;
+    } else if (b.lulu_interior_path) {
+      bookData.lulu_interior_pdf = b.lulu_interior_path;
     }
 
-    // Upload audiobook file
+    // Upload audiobook file (server-side for small files, or use client-side path)
     if (req.files?.audiobook_file?.[0]) {
       const f = req.files.audiobook_file[0];
       await supabase.storage.from('jh-uploads').upload(`audiobooks/${f.filename}`, fs.readFileSync(f.path), { contentType: f.mimetype });
       bookData.audiobook_file = `audiobooks/${f.filename}`;
+    } else if (b.audiobook_file_path) {
+      bookData.audiobook_file = b.audiobook_file_path;
     }
 
     // Upload audiobook sample clip
@@ -207,6 +213,8 @@ router.post('/books', requireAdmin, upload.fields([
       const f = req.files.audiobook_sample[0];
       await supabase.storage.from('jh-uploads').upload(`audiobooks/samples/${f.filename}`, fs.readFileSync(f.path), { contentType: f.mimetype });
       bookData.audiobook_sample = `audiobooks/samples/${f.filename}`;
+    } else if (b.audiobook_sample_path) {
+      bookData.audiobook_sample = b.audiobook_sample_path;
     }
 
     let bookId = b.book_id ? parseInt(b.book_id) : null;
