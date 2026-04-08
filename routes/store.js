@@ -9,6 +9,15 @@ router.get('/', async (req, res) => {
   res.render('home', { title: 'Jude Harper', featured: featured || [], books: books || [] });
 });
 
+// Shop page with tabs
+router.get('/shop', async (req, res) => {
+  const { data: allProducts } = await supabase.from('jh_books').select('*').eq('active', true).order('created_at', { ascending: false });
+  const books = (allProducts || []).filter(b => b.has_digital || b.has_paperback);
+  const audiobooks = (allProducts || []).filter(b => b.has_audiobook);
+  const { data: bundles } = await supabase.from('jh_bundles').select('*').eq('active', true).order('created_at', { ascending: false });
+  res.render('shop', { title: 'Shop - Jude Harper', allProducts: allProducts || [], books, audiobooks, bundles: bundles || [] });
+});
+
 // All books (only products with digital/paperback — not audiobook-only)
 router.get('/books', async (req, res) => {
   const { data: allBooks } = await supabase.from('jh_books').select('*').eq('active', true).order('created_at', { ascending: false });

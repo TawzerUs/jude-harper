@@ -1,0 +1,118 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<main class="flex-1 px-4 md:px-12 py-8 md:py-16">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-8 md:mb-10">
+      <h1 class="font-serif text-3xl md:text-5xl font-bold mb-3">Shop</h1>
+      <p class="text-fg-secondary text-lg">Browse the full collection by Jude Harper.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
+      <button onclick="filterTab('all')" id="tab-all" class="tab-btn px-5 py-2.5 rounded-pill text-sm font-semibold bg-accent text-white transition whitespace-nowrap">All</button>
+      <button onclick="filterTab('books')" id="tab-books" class="tab-btn px-5 py-2.5 rounded-pill text-sm font-medium bg-surface-secondary text-fg-secondary transition whitespace-nowrap">Books</button>
+      <button onclick="filterTab('audiobooks')" id="tab-audiobooks" class="tab-btn px-5 py-2.5 rounded-pill text-sm font-medium bg-surface-secondary text-fg-secondary transition whitespace-nowrap">Audiobooks</button>
+      <button onclick="filterTab('bundles')" id="tab-bundles" class="tab-btn px-5 py-2.5 rounded-pill text-sm font-medium bg-surface-secondary text-fg-secondary transition whitespace-nowrap">Bundles</button>
+    </div>
+
+    <!-- All Products -->
+    <div id="grid-all" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% allProducts.forEach(book => { %>
+        <div class="product-item" data-type="<%= book.has_audiobook && !book.has_digital && !book.has_paperback ? 'audiobook' : 'book' %>">
+          <%- include('partials/book-card', { book }) %>
+        </div>
+      <% }) %>
+    </div>
+
+    <!-- Books Only -->
+    <div id="grid-books" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% books.forEach(book => { %>
+        <%- include('partials/book-card', { book }) %>
+      <% }) %>
+    </div>
+
+    <!-- Audiobooks Only -->
+    <div id="grid-audiobooks" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% audiobooks.forEach(book => { %>
+        <a href="/book/<%= book.slug %>?format=audiobook" class="group block bg-surface-secondary rounded-bento overflow-hidden hover:shadow-lg transition-all duration-300">
+          <div class="aspect-[3/4] bg-gray-100 overflow-hidden relative">
+            <% if (book.cover_image) { %>
+              <img src="<%= book.cover_image %>" alt="<%= book.title %>" class="w-full h-full object-contain bg-surface-secondary group-hover:scale-105 transition-transform duration-500">
+            <% } else { %>
+              <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 gap-3">
+                <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+                <span class="font-serif text-lg text-blue-400 text-center px-4"><%= book.title %></span>
+              </div>
+            <% } %>
+            <span class="absolute top-3 left-3 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-pill">Audiobook</span>
+          </div>
+          <div class="p-6">
+            <h3 class="font-serif text-xl font-bold mb-2 group-hover:text-accent transition"><%= book.title %></h3>
+            <% if (book.description) { %>
+              <p class="text-sm text-fg-secondary mb-4 line-clamp-2 leading-relaxed"><%= book.description %></p>
+            <% } %>
+            <div class="flex items-center justify-between">
+              <p class="text-xl font-bold text-accent">$<%= book.audiobook_price ? parseFloat(book.audiobook_price).toFixed(2) : parseFloat(book.price).toFixed(2) %></p>
+              <span class="bg-accent text-white text-xs font-semibold px-4 py-2 rounded-pill group-hover:bg-orange-600 transition">Listen Now</span>
+            </div>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+
+    <!-- Bundles -->
+    <div id="grid-bundles" class="hidden space-y-6">
+      <% bundles.forEach((bundle, idx) => { %>
+      <div class="rounded-bento <%= idx % 2 === 1 ? 'bg-surface-inverse text-white' : 'bg-surface-secondary' %> flex flex-col md:flex-row overflow-hidden">
+        <div class="flex-1 p-6 md:p-8 space-y-4">
+          <div class="flex gap-2">
+            <% if (bundle.discount_percent) { %><span class="text-xs font-bold px-3 py-1 rounded-pill <%= idx % 2 === 1 ? 'bg-orange-500/20 text-accent' : 'bg-yellow-100 text-yellow-700' %>">Save <%= bundle.discount_percent %>%</span><% } %>
+            <% if (bundle.limited_offer) { %><span class="text-xs font-bold px-3 py-1 rounded-pill bg-orange-500/20 text-accent">Limited</span><% } %>
+          </div>
+          <h2 class="font-serif text-xl md:text-2xl font-bold"><%= bundle.title %></h2>
+          <p class="text-sm leading-relaxed <%= idx % 2 === 1 ? 'text-gray-400' : 'text-fg-secondary' %>"><%= bundle.description %></p>
+          <div class="flex items-center gap-3">
+            <span class="text-2xl font-bold">$<%= parseFloat(bundle.price).toFixed(2) %></span>
+            <% if (bundle.original_price) { %><span class="text-sm line-through <%= idx % 2 === 1 ? 'text-gray-500' : 'text-fg-muted' %>">$<%= parseFloat(bundle.original_price).toFixed(2) %></span><% } %>
+          </div>
+          <button onclick="buyBundle(<%= bundle.id %>)" class="bg-accent text-white px-6 py-2.5 rounded-pill font-semibold text-sm hover:bg-orange-600 transition">Get Bundle</button>
+        </div>
+      </div>
+      <% }) %>
+      <% if (bundles.length === 0) { %><p class="text-center text-fg-muted py-12">No bundles available yet.</p><% } %>
+    </div>
+
+    <!-- Empty states -->
+    <% if (allProducts.length === 0) { %>
+    <p class="text-fg-secondary text-lg text-center py-16">No products available yet. Check back soon!</p>
+    <% } %>
+  </div>
+</main>
+
+<script>
+function filterTab(tab) {
+  ['all', 'books', 'audiobooks', 'bundles'].forEach(t => {
+    document.getElementById('grid-' + t)?.classList.toggle('hidden', t !== tab);
+    const btn = document.getElementById('tab-' + t);
+    if (btn) {
+      btn.className = t === tab
+        ? 'tab-btn px-5 py-2.5 rounded-pill text-sm font-semibold bg-accent text-white transition whitespace-nowrap'
+        : 'tab-btn px-5 py-2.5 rounded-pill text-sm font-medium bg-surface-secondary text-fg-secondary transition whitespace-nowrap';
+    }
+  });
+}
+
+async function buyBundle(bundleId) {
+  const res = await fetch('/api/checkout-bundle', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bundleId })
+  });
+  const data = await res.json();
+  if (data.url) window.location.href = data.url;
+  else alert(data.error || 'Something went wrong');
+}
+</script>
+
+<%- include('partials/footer') %>

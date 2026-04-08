@@ -17,12 +17,18 @@
         <div class="bg-surface-secondary rounded-bento p-6 md:p-8 space-y-6">
           <div class="flex items-center justify-between">
             <h2 class="font-serif text-xl font-bold"><%= order.jh_books?.title || 'Order' %> — <span class="capitalize"><%= order.format || 'digital' %></span></h2>
+            <%
+              const isDigitalType = order.format === 'digital' || order.format === 'audiobook' || !order.format;
+              const digitalDelivered = isDigitalType && order.download_count > 0;
+              const displayStatus = digitalDelivered ? 'Delivered' : isDigitalType ? 'Ready' : (order.fulfillment_status || 'Processing');
+            %>
             <span class="px-3 py-1 rounded-pill text-xs font-semibold
-              <% if (order.fulfillment_status === 'delivered') { %>bg-green-50 text-green-600
+              <% if (digitalDelivered || order.fulfillment_status === 'delivered') { %>bg-green-50 text-green-600
+              <% } else if (isDigitalType) { %>bg-blue-50 text-blue-600
               <% } else if (order.fulfillment_status === 'shipped') { %>bg-blue-50 text-blue-600
               <% } else if (order.fulfillment_status === 'printing') { %>bg-yellow-50 text-yellow-600
               <% } else { %>bg-gray-100 text-fg-muted<% } %>">
-              <%= order.fulfillment_status || 'Processing' %>
+              <%= displayStatus %>
             </span>
           </div>
 
@@ -71,14 +77,40 @@
               </div>
             </div>
             <% } else { %>
+            <!-- Digital/Audiobook delivery -->
             <div class="flex gap-4 items-start">
               <div class="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <% if (order.format === 'audiobook') { %><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/>
+                  <% } else { %><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  <% } %>
+                </svg>
               </div>
               <div>
-                <p class="font-semibold text-sm">Download ready</p>
-                <p class="text-xs"><a href="/api/download/<%= order.download_token %>" class="text-accent font-medium hover:underline">Download your <%= order.format === 'audiobook' ? 'audiobook' : 'PDF' %></a></p>
+                <% if (digitalDelivered) { %>
+                  <p class="font-semibold text-sm text-green-600">Delivered</p>
+                  <p class="text-xs text-fg-muted">Downloaded <%= order.download_count %> time<%= order.download_count > 1 ? 's' : '' %></p>
+                <% } else { %>
+                  <p class="font-semibold text-sm">Ready for download</p>
+                  <p class="text-xs text-fg-muted">Instant delivery — click below to download</p>
+                <% } %>
               </div>
+            </div>
+
+            <!-- Download link always visible -->
+            <div class="ml-12 bg-surface-secondary rounded-xl px-4 py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <div>
+                  <p class="text-sm font-medium">Download your <%= order.format === 'audiobook' ? 'audiobook (MP3)' : 'PDF' %></p>
+                  <p class="text-xs text-fg-muted"><%= 5 - order.download_count %> downloads remaining</p>
+                </div>
+              </div>
+              <% if (order.download_count < 5) { %>
+                <a href="<%= order.format === 'audiobook' ? '/listen/' + order.download_token : '/api/download/' + order.download_token %>" class="bg-accent text-white text-xs font-semibold px-4 py-2 rounded-pill hover:bg-orange-600 transition"><%= order.format === 'audiobook' ? 'Listen / Download' : 'Download' %></a>
+              <% } else { %>
+                <span class="text-xs text-fg-muted">Limit reached</span>
+              <% } %>
             </div>
             <% } %>
           </div>
