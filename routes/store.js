@@ -6,7 +6,7 @@ const { supabase } = require('../db/setup');
 router.get('/', async (req, res) => {
   const { data: featured } = await supabase.from('jh_books').select('*').eq('active', true).eq('featured', true).order('created_at', { ascending: false });
   const { data: books } = await supabase.from('jh_books').select('*').eq('active', true).order('created_at', { ascending: false });
-  res.render('home', { title: 'Jude Harper', featured: featured || [], books: books || [] });
+  res.render('home', { title: 'Jude Harper', featured: featured || [], books: books || [], subscribed: req.query.subscribed === '1' });
 });
 
 // Shop page with tabs

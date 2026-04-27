@@ -1,22 +1,22 @@
 <%- include('partials/head') %>
 <%- include('partials/nav') %>
 
-<main class="flex-1 px-4 md:px-12 py-8 md:py-16">
-  <div class="max-w-7xl mx-auto">
-    <div class="mb-8 md:mb-10">
-      <h1 class="font-serif text-3xl md:text-5xl font-bold mb-3">All Books</h1>
-      <p class="text-fg-secondary text-lg">Explore the full collection of books by Jude Harper.</p>
-    </div>
-    <% if (books.length > 0) { %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<main class="jh-page">
+  <div class="jh-page-head">
+    <span class="jh-kicker">§ 01 — CATALOG</span>
+    <h1>All <em>books.</em></h1>
+    <p>Explore the full collection of books by Jude Harper.</p>
+  </div>
+
+  <% if (books.length > 0) { %>
+    <div class="jh-books-grid">
       <% books.forEach(book => { %>
         <%- include('partials/book-card', { book }) %>
       <% }) %>
     </div>
-    <% } else { %>
-    <p class="text-fg-secondary text-lg text-center py-16">No books available yet. Check back soon!</p>
-    <% } %>
-  </div>
+  <% } else { %>
+    <p class="jh-empty">No books available yet. Check back soon.</p>
+  <% } %>
 </main>
 
 <%- include('partials/footer') %>

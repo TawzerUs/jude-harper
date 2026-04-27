@@ -1,69 +1,122 @@
 <%- include('partials/head') %>
 <%- include('partials/nav') %>
 
-<main class="flex-1">
-  <!-- Hero -->
-  <section class="px-4 md:px-12 py-10 md:py-24">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-16">
-      <div class="flex-1 space-y-5 md:space-y-6 text-center md:text-left">
-        <span class="inline-block bg-surface-secondary text-accent text-xs md:text-sm font-semibold px-3 md:px-4 py-1.5 md:py-2 rounded-pill">New Release — Available Now</span>
-        <h1 class="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-fg-primary leading-[1.15]">The book that changes how you see yourself</h1>
-        <p class="text-base md:text-lg text-fg-secondary leading-relaxed max-w-lg mx-auto md:mx-0">Jude Harper writes the words you needed to hear — raw, honest, and transformative. For anyone who's been silently carrying too much.</p>
-        <div class="flex flex-col sm:flex-row items-center gap-3 md:gap-4 pt-2">
-          <a href="/shop" class="w-full sm:w-auto bg-accent text-white px-8 py-3.5 rounded-pill font-semibold hover:bg-orange-600 transition text-center">Get Your Copy</a>
-          <a href="/about" class="w-full sm:w-auto border-2 border-accent text-accent px-8 py-3.5 rounded-pill font-semibold hover:bg-accent hover:text-white transition text-center">Learn More</a>
+<main class="jh-main">
+  <%
+    const catalog = books || [];
+    const heroProduct = [...(featured || []), ...catalog].find(b => b.cover_image) || catalog[0];
+  %>
+
+  <section class="jh-hero">
+    <div class="jh-hero-left">
+      <div class="jh-hero-meta">
+        <span class="jh-kicker">Vol. 02 · 2026</span>
+        <span class="jh-kicker">No. 014 — New Release</span>
+      </div>
+      <div>
+        <h1>The book<br>that <em>changes</em><br>how you see<br>yourself.</h1>
+        <p>Jude Harper writes the words you needed to hear — <strong>raw, honest, transformative.</strong> For anyone who's been silently carrying too much.</p>
+        <div class="jh-hero-actions">
+          <a href="/shop" class="jh-btn-primary">Get Your Copy <span>→</span></a>
+          <a href="<%= heroProduct?.slug ? `/book/${heroProduct.slug}` : '/books' %>" class="jh-btn-ghost">Read an excerpt</a>
         </div>
       </div>
-      <div class="w-full max-w-sm md:max-w-none md:w-[480px] shrink-0">
-        <%
-          const heroProduct = [...featured, ...books].find(b => b.cover_image);
-        %>
+      <div class="jh-hero-foot">
+        <span>EST. 2024 · TAWZER LLC</span>
+        <span>SCROLL ↓ TO READ</span>
+      </div>
+    </div>
+
+    <div class="jh-hero-right">
+      <div class="jh-hero-book-wrap">
         <% if (heroProduct?.cover_image) { %>
-          <img src="<%= heroProduct.cover_image %>" alt="<%= heroProduct.title %>" class="w-full aspect-[3/4] object-contain rounded-bento shadow-xl bg-surface-secondary">
+          <img src="<%= heroProduct.cover_image %>" alt="<%= heroProduct.title %>" class="jh-hero-book">
         <% } else { %>
-          <div class="w-full aspect-[3/4] bg-gradient-to-br from-orange-50 to-orange-100 rounded-bento flex flex-col items-center justify-center gap-4">
-            <svg class="w-20 h-20 text-accent/30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
-            <span class="font-serif text-3xl text-accent/50">Jude Harper</span>
-          </div>
+          <div class="jh-hero-book jh-hero-book-fallback">Jude Harper</div>
         <% } %>
       </div>
+      <div class="jh-hero-quote">For anyone who's been silently carrying too much.</div>
     </div>
   </section>
 
-  <!-- Featured Books -->
-  <% if (books.length > 0) { %>
-  <section class="px-6 md:px-12 py-16">
-    <div class="max-w-7xl mx-auto">
-      <div class="flex items-center justify-between mb-10">
-        <h2 class="font-serif text-3xl md:text-4xl font-bold">Featured Books</h2>
-        <a href="/shop" class="text-accent font-semibold text-sm hover:text-orange-700 transition">View All &rarr;</a>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <% books.forEach(book => { %>
+  <div class="jh-marquee" aria-hidden="true">
+    <div>
+      <span>Words that stay with you</span>
+      <span>Read in the quiet hours</span>
+      <span>For the silently exhausted</span>
+      <span>Honest. Raw. Transformative.</span>
+      <span>Words that stay with you</span>
+      <span>Read in the quiet hours</span>
+      <span>For the silently exhausted</span>
+      <span>Honest. Raw. Transformative.</span>
+    </div>
+  </div>
+
+  <section class="jh-featured">
+    <div class="jh-section-head">
+      <span>§ 01 — CATALOG</span>
+      <h2>Featured <em>works.</em></h2>
+      <a href="/shop">View all →</a>
+    </div>
+
+    <% if (catalog.length > 0) { %>
+      <div class="jh-books-grid">
+        <% catalog.slice(0, 6).forEach(book => { %>
           <%- include('partials/book-card', { book }) %>
         <% }) %>
       </div>
+    <% } else { %>
+      <p class="jh-empty">Books coming soon. Subscribe to get notified.</p>
+    <% } %>
+  </section>
+
+  <section class="jh-quote-band">
+    <div>"</div>
+    <p>You weren't too much.<br>You were just the only one paying attention.</p>
+    <cite>— From Jude Harper</cite>
+  </section>
+
+  <section class="jh-audio">
+    <div>
+      <span class="jh-kicker">§ 02 — LISTEN</span>
+      <h3>Hear it<br>in the<br><em>quiet</em> hours.</h3>
+      <p>Audio companions designed for the moments between — the commute, the late shower, the 3 a.m. doubt. Press play and breathe out.</p>
+      <a href="/audiobooks" class="jh-btn-ghost">Browse audiobooks →</a>
+    </div>
+    <div class="jh-player">
+      <div class="jh-player-row">
+        <button aria-label="Play preview">▶</button>
+        <div>
+          <strong>Belief Rewiring</strong>
+          <span>CHAPTER 02 · 5-MINUTE MINDSHIFT</span>
+        </div>
+      </div>
+      <div class="jh-waveform" aria-hidden="true">
+        <% for (let i = 0; i < 60; i++) { %>
+          <span style="height:<%= 28 + Math.round(Math.abs(Math.sin(i * 0.42)) * 54) %>%;<%= i < 19 ? 'background:#7A2E1F;opacity:.95' : '' %>"></span>
+        <% } %>
+      </div>
+      <div class="jh-progress"><span></span></div>
+      <div class="jh-player-times"><span>01:42</span><span>-03:18</span></div>
     </div>
   </section>
-  <% } else { %>
-  <section class="px-6 md:px-12 py-16 text-center">
-    <p class="text-fg-secondary text-lg">Books coming soon. Subscribe to get notified!</p>
-  </section>
-  <% } %>
 
-  <!-- Newsletter -->
-  <section class="bg-surface-inverse text-white px-6 md:px-12 py-20">
-    <div class="max-w-xl mx-auto text-center">
-      <h2 class="font-serif text-3xl md:text-4xl font-bold mb-4">Stay in the loop</h2>
-      <p class="text-gray-400 mb-8">Get notified about new releases, exclusive content, and early access.</p>
-      <% if (typeof req !== 'undefined' && req.query?.subscribed) { %>
-        <p class="text-accent font-semibold">Thanks for subscribing!</p>
+  <section class="jh-news">
+    <div>
+      <span class="jh-kicker">§ 03 — STAY CLOSE</span>
+      <h3>Letters,<br>occasionally,<br>when there's<br>something <em>worth</em> saying.</h3>
+    </div>
+    <div class="jh-news-form">
+      <p>New releases, exclusive essays, and early access — sent only when there's a reason. No noise.</p>
+      <% if (typeof subscribed !== 'undefined' && subscribed) { %>
+        <p class="jh-subscribe-ok">Thanks for subscribing.</p>
       <% } else { %>
-      <form action="/subscribe" method="POST" class="flex gap-3 max-w-md mx-auto">
-        <input type="email" name="email" required placeholder="your@email.com" class="flex-1 px-5 py-3.5 rounded-pill bg-white/5 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-accent">
-        <button type="submit" class="bg-accent text-white px-7 py-3.5 rounded-pill font-semibold hover:bg-orange-600 transition">Subscribe</button>
-      </form>
+        <form action="/subscribe" method="POST">
+          <input type="email" name="email" required placeholder="your@email.address">
+          <button type="submit">Subscribe <span>→</span></button>
+        </form>
       <% } %>
+      <p class="jh-news-fine">NO SPAM · UNSUBSCRIBE WITH ONE CLICK · WE WILL NEVER SHARE YOUR EMAIL</p>
     </div>
   </section>
 </main>

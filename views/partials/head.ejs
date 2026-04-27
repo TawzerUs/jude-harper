@@ -10,25 +10,27 @@
       theme: {
         extend: {
           colors: {
-            surface: { primary: '#FFFFFF', secondary: '#F7F8FA', inverse: '#0A0A0A' },
-            fg: { primary: '#1A1A1A', secondary: '#666666', muted: '#888888', inverse: '#FFFFFF' },
-            accent: '#FF5C00',
-            border: { subtle: '#E5E7EB' }
+            surface: { primary: '#F4EFE6', secondary: '#EBE3D4', inverse: '#1A1714' },
+            fg: { primary: '#1A1714', secondary: '#514A42', muted: '#766C60', inverse: '#F4EFE6' },
+            accent: '#7A2E1F',
+            border: { subtle: '#D6CDBD' }
           },
           fontFamily: {
-            serif: ['Playfair Display', 'Georgia', 'serif'],
-            sans: ['Inter', 'system-ui', 'sans-serif'],
+            serif: ['Instrument Serif', 'Georgia', 'serif'],
+            sans: ['Inter Tight', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
           },
           borderRadius: {
-            'bento': '16px',
-            'pill': '9999px',
+            'bento': '2px',
+            'pill': '2px',
           }
         }
       }
     }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body class="bg-surface-primary text-fg-primary font-sans min-h-screen flex flex-col">
+<body class="jh-body bg-surface-primary text-fg-primary font-sans min-h-screen flex flex-col">
